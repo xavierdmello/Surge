@@ -16,6 +16,10 @@ contract SrLdoErc20Comp is ERC20 {
     CErc20 public immutable cAsset;
     CErc20 public immutable cBorrow;
 
+    // For gas optimization purposes
+    uint256 private immutable assetDecimals;
+    uint256 private immutable borrowDecimals;
+
     PriceOracle public immutable priceOracle;
     Comptroller public immutable comptroller;
 
@@ -33,6 +37,8 @@ contract SrLdoErc20Comp is ERC20 {
 
         asset = ERC20(_cAsset.underlying());
         borrow = ERC20(_cBorrow.underlying());
+        assetDecimals = asset.decimals();
+        borrowDecimals = borrow.decimals();
 
         // Convert ComptrollerInterface to Comptroller because some hidden functions need to be used
         comptroller = Comptroller(address(_cAsset.comptroller()));
