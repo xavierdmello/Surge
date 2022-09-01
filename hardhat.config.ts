@@ -8,33 +8,33 @@ const BOB = process.env.BOB!
 const ALICE = process.env.ALICE!
 
 const config: HardhatUserConfig = {
-	solidity: {
-		version: "0.8.10",
+  solidity: {
+    version: "0.8.10",
 
-		settings: {
-			optimizer: {
-				enabled: true,
-				runs: 500,
-			},
-		},
-	},
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 500,
+      },
+    },
+  },
 
-	defaultNetwork: "moonbase",
+  defaultNetwork: "moonbase",
 
-	networks: {
-		moonbase: { url: "https://rpc.api.moonbase.moonbeam.network", accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 1287 },
-		hardhat: {
-			forking: {
-				url: "https://rpc.api.moonbase.moonbeam.network",
-				blockNumber: 2750000,
-			},
-		},
-	},
-	gasReporter: {
-		enabled: true,
-		noColors: true,
-		outputFile: "gas-report.txt",
-	},
+  networks: {
+    moonbase: { url: "https://rpc.api.moonbase.moonbeam.network", accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 1287 },
+    hardhat: {
+      forking: {
+        url: "https://rpc.api.moonbase.moonbeam.network",
+        blockNumber: 2750000,
+      },
+    },
+  },
+  gasReporter: {
+    enabled: true,
+    noColors: true,
+    outputFile: "gas-report.txt",
+  },
 }
 
 export default config
