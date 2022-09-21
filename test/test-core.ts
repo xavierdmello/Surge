@@ -8,7 +8,7 @@ import { Log, TransactionReceipt } from "@ethersproject/providers"
 
 describe("Core", () => {
   describe("SrLdoErc20Comp", () => {
-    const DEPOSIT_AMOUNT = BigNumber.from(1).mul(BigNumber.from(10).pow(BigNumber.from(18)))
+    const DEPOSIT_AMOUNT = BigNumber.from(1).mul(BigNumber.from(10).pow(BigNumber.from(6)))
 
     let asset: FaucetToken
     let borrow: ERC20
@@ -51,7 +51,9 @@ describe("Core", () => {
       await tx.wait(1)
 
       expect(
-        (await vault.balanceOf(account.address)).mul(await vault.exchangeRate()).div(ethers.utils.parseEther("1"))
+        (await vault.balanceOf(account.address))
+          .mul(await vault.exchangeRate())
+          .div(BigNumber.from(10).pow(BigNumber.from(await vault.decimals())))
       ).to.equal(await cAsset.balanceOf(vault.address))
     }).timeout(100000)
 
@@ -60,8 +62,8 @@ describe("Core", () => {
       const accounts = await ethers.getSigners()
       const bob = accounts[1]
       const alice = accounts[2]
-      const BOB_DEPOSIT_AMOUNT = BigNumber.from(2).mul(BigNumber.from(10).pow(BigNumber.from(18)))
-      const ALICE_DEPOSIT_AMOUNT = BigNumber.from(3).mul(BigNumber.from(10).pow(BigNumber.from(18)))
+      const BOB_DEPOSIT_AMOUNT = BigNumber.from(2).mul(BigNumber.from(10).pow(BigNumber.from(6)))
+      const ALICE_DEPOSIT_AMOUNT = BigNumber.from(3).mul(BigNumber.from(10).pow(BigNumber.from(6)))
 
       // Mint USDC
       if (network.name == "hardhat") {
@@ -72,25 +74,31 @@ describe("Core", () => {
 
       // Deposit
       let tx = await asset.approve(vault.address, DEPOSIT_AMOUNT)
-      tx.wait(1)
+      await tx.wait(1)
+
       console.log("Allowance: " + (await asset.allowance(account.address, vault.address)))
       tx = await vault.deposit(DEPOSIT_AMOUNT)
-      tx.wait(1)
+      await tx.wait(1)
       console.log("FIRST DONE!")
       asset = asset.connect(bob)
       vault = vault.connect(bob)
       tx = await asset.approve(vault.address, BOB_DEPOSIT_AMOUNT)
-      tx.wait(1)
+      await tx.wait(1)
       tx = await vault.deposit(BOB_DEPOSIT_AMOUNT)
-      tx.wait(1)
+      await tx.wait(1)
       console.log("SECOND DONE!")
       asset = asset.connect(alice)
       vault = vault.connect(alice)
       tx = await asset.approve(vault.address, ALICE_DEPOSIT_AMOUNT)
-      tx.wait(1)
+      await tx.wait(1)
       tx = await vault.deposit(ALICE_DEPOSIT_AMOUNT)
-      tx.wait(1)
+      await tx.wait(1)
       console.log("THIRD DONE!")
+
+
+
+      // TODO: Fix this, current this section of testing is wrong!!
+
 
       // Expect the borrow amount to be slightly higher than the total supply.
       // While the vault is aiming to be spot on each time it deposits,
@@ -105,10 +113,12 @@ describe("Core", () => {
 
       // Make sure total shares * exchangeRate = total cTokens
       expect(
-        (await vault.totalSupply()).mul(await vault.exchangeRate()).div(ethers.utils.parseEther("1"))
+        (await vault.totalSupply())
+          .mul(await vault.exchangeRate())
+          .div(BigNumber.from(10).pow(BigNumber.from(await vault.decimals())))
       ).to.be.closeTo(await cAsset.balanceOf(vault.address), BigNumber.from(1))
-    }).timeout(200000)
+    }).timeout(600000)
 
     it("Should take multiple deposits from different and same accounts", async () => {})
-  })
-})
+  }).timeout(800000)
+}).timeout(1000000)

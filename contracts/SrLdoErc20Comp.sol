@@ -5,11 +5,8 @@ import {CErc20} from "./compound/CErc20.sol";
 import {PriceOracle} from "./compound/PriceOracle.sol";
 import {Comptroller} from "./compound/Comptroller.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "hardhat/console.sol";
 
 /// @author Xavier D'Mello www.xavierdmello.com
-// TODO: Replace hardcoded 1e18 decimal assumptions with actual asset decimals
-// TODO: Investigate weird shares:cToken ratio behaviour
 contract SrLdoErc20Comp is ERC20 {
     ERC20 public immutable asset;
     ERC20 public immutable borrow;
@@ -17,8 +14,10 @@ contract SrLdoErc20Comp is ERC20 {
     CErc20 public immutable cBorrow;
 
     // For gas optimization purposes
-    uint256 private immutable assetDecimals;
-    uint256 private immutable borrowDecimals;
+    // TODO: Test effictiveness
+    uint8 private immutable assetDecimals;
+    uint8 private immutable borrowDecimals;
+    uint8 private immutable cAssetDecimals;
 
     PriceOracle public immutable priceOracle;
     Comptroller public immutable comptroller;
@@ -39,6 +38,7 @@ contract SrLdoErc20Comp is ERC20 {
         borrow = ERC20(_cBorrow.underlying());
         assetDecimals = asset.decimals();
         borrowDecimals = borrow.decimals();
+        cAssetDecimals = _cAsset.decimals();
 
         // Convert ComptrollerInterface to Comptroller because some hidden functions need to be used
         comptroller = Comptroller(address(_cAsset.comptroller()));
@@ -50,11 +50,16 @@ contract SrLdoErc20Comp is ERC20 {
         require(comptroller.enterMarkets(market)[0] == 0, "Surge: Compound Enter Market failed");
     }
 
-    // Returns the rate of ctokens to shares, scaled by 1e18.
+    // Returns the rate of cTokens to shares
     // shares * exchangeRate() = cTokens
     function exchangeRate() public view returns (uint256) {
         uint256 totalSupply = totalSupply();
-        return totalSupply == 0 ? 1e18 : (cAsset.balanceOf(address(this)) * 1e18) / totalSupply;
+        return totalSupply == 0 ? 10**decimals() : (cAsset.balanceOf(address(this)) * 10**decimals()) / totalSupply;
+    }
+
+    /// @dev This token has the same amount of decimals as the underlying cToken
+    function decimals() public view override returns (uint8) {
+        return cAssetDecimals;
     }
 
     // The target borrow rate of the vault, scaled by 1e18
@@ -68,30 +73,22 @@ contract SrLdoErc20Comp is ERC20 {
         asset.transferFrom(msg.sender, address(this), assets);
 
         // Deposit into Compound
+        uint256 cAssetBalanceBefore = cAsset.balanceOf(address(this));
         asset.approve(address(cAsset), assets);
         require(cAsset.mint(assets) == 0, "Surge: Compound deposit failed");
+        uint256 cAssetsMinted = cAsset.balanceOf(address(this)) - cAssetBalanceBefore;
 
-        console.log("Compound Deposit Success");
         rebalance();
-        console.log("Rebalance Success");
-        console.log("cAsset.exchangeRateCurrent: ", cAsset.exchangeRateCurrent());
-        console.log("shares exchange rate: ", exchangeRate());
-        uint256 amount = (((assets * 1e18) / cAsset.exchangeRateCurrent()) * exchangeRate()) / 1e18;
-        console.log("Mint amount: ", amount);
-        _mint(msg.sender, amount);
-        console.log("Mint Success");
+        _mint(msg.sender, cAssetsMinted);
     }
-
+    
     function rebalance() public {
         // Exchange rate asset:borrow. Not to be confused with exchangeRate()
-        uint256 assetExchangeRate = (priceOracle.getUnderlyingPrice(cAsset) * 1e18) /
-            priceOracle.getUnderlyingPrice(cBorrow);
+        uint256 assetExchangeRate = (priceOracle.getUnderlyingPrice(cAsset) * 10**(36 - borrowDecimals)) /
+            priceOracle.getUnderlyingPrice(cBorrow); // In (36-assetDecimals) decimals.
+        uint256 borrowTarget = (((cAsset.balanceOfUnderlying(address(this)) * assetExchangeRate) /
+            10**(36 - borrowDecimals)) * borrowTargetMantissa()) / 1e18; // In borrowDecimals decimals.
         uint256 borrowBalanceCurrent = cBorrow.borrowBalanceCurrent(address(this));
-        uint256 borrowTarget = (((cAsset.balanceOfUnderlying(address(this)) * assetExchangeRate) / 1e18) *
-            borrowTargetMantissa()) / 1e18;
-
-        console.log("\nBorrow Balance Current:", borrowBalanceCurrent, "\n");
-        console.log("\nBorrow Target:", borrowTarget, "\n");
 
         if (borrowTarget > borrowBalanceCurrent) {
             require(cBorrow.borrow(borrowTarget - borrowBalanceCurrent) == 0, "Surge: Compound borrow failed");
