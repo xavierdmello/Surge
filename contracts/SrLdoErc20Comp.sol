@@ -3,15 +3,19 @@ pragma solidity ^0.8.0;
 
 import {CErc20} from "./compound/CErc20.sol";
 import {PriceOracle} from "./compound/PriceOracle.sol";
-import {Comptroller} from "./compound/Comptroller.sol";
+import {Moontroller} from "./interfaces/Moontroller.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IUniswapV2Router02} from "./interfaces/IUniswapV2Router02.sol";
 
 /// @author Xavier D'Mello www.xavierdmello.com
 contract SrLdoErc20Comp is ERC20 {
+    // Compound
     ERC20 public immutable asset;
     ERC20 public immutable borrow;
     CErc20 public immutable cAsset;
     CErc20 public immutable cBorrow;
+    PriceOracle public immutable priceOracle;
+    Moontroller public immutable comptroller;
 
     // For gas optimization purposes
     // TODO: Test effictiveness
@@ -19,15 +23,21 @@ contract SrLdoErc20Comp is ERC20 {
     uint8 private immutable borrowDecimals;
     uint8 private immutable cAssetDecimals;
 
-    PriceOracle public immutable priceOracle;
-    Comptroller public immutable comptroller;
-
     // Percentage of LTV to borrow
     uint256 public safteyMargin = 80;
+
+    // Moonwell Apollo and Artemis have two reward coins, respectively:
+    // MOVR/GLMR (native) and MFAM/WELL (COMP equivalent)
+    IUniswapV2Router02 private immutable router;
+    address[] private rewardTokenPath;
+    address[] private rewardEthPath;
 
     constructor(
         CErc20 _cAsset,
         CErc20 _cBorrow,
+        address[] memory _rewardTokenPath,
+        address[] memory _rewardEthPath,
+        IUniswapV2Router02 _router,
         string memory _name,
         string memory _symbol
     ) ERC20(_name, _symbol) {
@@ -40,8 +50,13 @@ contract SrLdoErc20Comp is ERC20 {
         borrowDecimals = borrow.decimals();
         cAssetDecimals = _cAsset.decimals();
 
+        // Uniswap
+        rewardTokenPath = _rewardTokenPath;
+        rewardEthPath = _rewardEthPath;
+        router = _router;
+
         // Convert ComptrollerInterface to Comptroller because some hidden functions need to be used
-        comptroller = Comptroller(address(_cAsset.comptroller()));
+        comptroller = Moontroller(address(_cAsset.comptroller()));
         priceOracle = comptroller.oracle();
 
         // Enter Market
@@ -87,6 +102,8 @@ contract SrLdoErc20Comp is ERC20 {
     }
 
     function rebalance() public {
+        claimCompRewards();
+
         // Exchange rate asset:borrow. Not to be confused with exchangeRate()
         uint256 assetExchangeRate = (priceOracle.getUnderlyingPrice(cAsset) * 10**(36 - borrowDecimals)) /
             priceOracle.getUnderlyingPrice(cBorrow); // In (36-assetDecimals) decimals.
@@ -99,6 +116,29 @@ contract SrLdoErc20Comp is ERC20 {
         } else if (borrowTarget < borrowBalanceCurrent) {
             require(cBorrow.repayBorrow(borrowBalanceCurrent - borrowTarget) == 0, "Surge: Compound repay failed");
         }
+    }
+
+    /// @dev Claims compound rewards, swaps them into asset, and deposits them back into compound.
+    // TODO: Decide to call this function every time rebalance() is called, or only perodically (to save gas)
+    function claimCompRewards() internal {
+        claimMoonwellRewards();
+    }
+
+    // Moonwell uses a modified comp rewards system with additional rewards.
+    function claimMoonwellRewards() internal {
+        ERC20 rewardToken = ERC20(rewardTokenPath[0]); // MFAM/WELL
+        comptroller.claimReward(0, payable(address(this))); // MFAM/WELL
+        comptroller.claimReward(1, payable(address(this))); // MOVR/GLMR
+
+        // Cache rewardTokenBalance to save some gas
+        uint256 rewardTokenBalance = rewardToken.balanceOf(address(this));
+        rewardToken.approve(address(router), rewardTokenBalance);
+        router.swapExactTokensForTokens(rewardTokenBalance, 0, rewardTokenPath, address(this), block.timestamp);
+        router.swapExactETHForTokens{value: address(this).balance}(0, rewardEthPath, address(this), block.timestamp);
+
+        // Deposit rewards back into compound
+        asset.approve(address(cAsset), asset.balanceOf(address(this)));
+        require(cAsset.mint(asset.balanceOf(address(this))) == 0, "Surge: Compound deposit failed");
     }
 
     /*

@@ -1,9 +1,3 @@
-// Addresses for important contracts on each network
-export enum FaucetType {
-  FaucetToken,
-  Fauceteer,
-}
-
 interface HelperConfig {
   [network: string]: {
     cAsset: string
@@ -13,6 +7,7 @@ interface HelperConfig {
 
 export const devChains = new Set<string>(["moonbase", "bsc_test", "hardhat", "goerli"])
 
+// Addresses for important contracts on each network
 export const config: HelperConfig = {
   moonbase: {
     cAsset: "0x18f324E21846F1C21F4fbF8228705B17897eF15A", // mUSDC

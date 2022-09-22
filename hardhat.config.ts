@@ -13,7 +13,6 @@ const GOERLI_RPC = process.env.GOERLI_RPC!
 const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.10",
-
     settings: {
       optimizer: {
         enabled: true,
@@ -27,7 +26,6 @@ const config: HardhatUserConfig = {
   networks: {
     moonbase: { url: "https://rpc.api.moonbase.moonbeam.network", accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 1287 },
     hardhat: {
-      
       forking: {
         // // Moonbase:
         // url: "https://rpc.api.moonbase.moonbeam.network",
@@ -43,9 +41,7 @@ const config: HardhatUserConfig = {
         // Goerli
         url: GOERLI_RPC,
         blockNumber: 7639220,
-
       },
-      
     },
     bsc: { url: "https://bsc-dataseed.binance.org/", accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 56 },
     bsc_test: { url: BSC_TEST_RPC, accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 97 },
