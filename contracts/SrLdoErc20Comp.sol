@@ -85,13 +85,13 @@ contract SrLdoErc20Comp is ERC20 {
         rebalance();
         _mint(msg.sender, (cAssetsMinted * 10**decimals()) / exchangeRateSnapshot);
     }
-    
+
     function rebalance() public {
         // Exchange rate asset:borrow. Not to be confused with exchangeRate()
         uint256 assetExchangeRate = (priceOracle.getUnderlyingPrice(cAsset) * 10**(36 - borrowDecimals)) /
             priceOracle.getUnderlyingPrice(cBorrow); // In (36-assetDecimals) decimals.
-        uint256 borrowTarget = (((cAsset.balanceOfUnderlying(address(this)) * assetExchangeRate) /
-            10**(36 - borrowDecimals)) * borrowTargetMantissa()) / 1e18; // In borrowDecimals decimals.
+        uint256 borrowTarget = (((cAsset.balanceOfUnderlying(address(this)) * assetExchangeRate) / 10**(36 - borrowDecimals)) *
+            borrowTargetMantissa()) / 1e18; // In borrowDecimals decimals.
         uint256 borrowBalanceCurrent = cBorrow.borrowBalanceCurrent(address(this));
 
         if (borrowTarget > borrowBalanceCurrent) {
@@ -101,5 +101,29 @@ contract SrLdoErc20Comp is ERC20 {
         }
     }
 
-    function withdraw(uint256 cAssets) public {}
+    /*
+    Two ways to do this:
+    1. Caclulate percentage of shares owned, extrapolate that to debt to repay and percentage claimable of cTokens
+    2. Calculate direct shares => ctoken => debt exchange rate
+    Option 1 probably costs less gas, but may have more rounding errors.
+    TODO: Test theory
+    */
+    /// @param shares Amount of shares to redeem for asset
+    function withdraw(uint256 shares) public {
+        uint256 percentageRedeeming = (shares * decimals()) / totalSupply();
+        _burn(msg.sender, shares);
+
+        // Repay borrows
+        require(
+            cBorrow.repayBorrow((cBorrow.borrowBalanceCurrent(address(this)) * percentageRedeeming) / 10**decimals()) == 0,
+            "Surge: Compound repay failed"
+        );
+
+        // Withdraw asset
+        uint256 withdrawnAssets = (cAsset.balanceOfUnderlying(address(this)) * percentageRedeeming) / 10**decimals();
+        require(cBorrow.redeemUnderlying(withdrawnAssets) == 0, "Surge: Compound withdraw failed");
+
+        // Transfer asset to user
+        asset.transfer(msg.sender, withdrawnAssets);
+    }
 }
