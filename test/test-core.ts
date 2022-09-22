@@ -1,6 +1,6 @@
 import { assert, expect } from "chai"
-import { config } from "../hardhat-helper-config"
-import { CErc20, Comptroller, ERC20, PriceOracle, SrLdoErc20Comp, FaucetToken } from "../typechain-types"
+import { config, FaucetType } from "../hardhat-helper-config"
+import { CErc20, Comptroller, ERC20, PriceOracle, SrLdoErc20Comp, FaucetToken, Fauceteer } from "../typechain-types"
 import { ethers, network } from "hardhat"
 import { BigNumber } from "ethers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
@@ -32,9 +32,16 @@ describe("Core", () => {
       comptroller = await ethers.getContractAt("Comptroller", await cAsset.comptroller())
       priceOracle = await ethers.getContractAt("PriceOracle", await comptroller.oracle())
 
-      // Mint USDC
+      // Mint Asset
       if (network.name == "hardhat") {
-        await asset.allocateTo(account.address, DEPOSIT_AMOUNT)
+        if (config[network.name].faucetType == FaucetType.FaucetToken) {
+          const tx = await asset.allocateTo(account.address, DEPOSIT_AMOUNT)
+          await tx.wait(1)
+        } else if (config[network.name].faucetType == FaucetType.Fauceteer) {
+          const fauceteer: Fauceteer = await ethers.getContractAt("Fauceteer", config[network.name].faucet)
+          const tx = await fauceteer.drip(asset.address)
+          await tx.wait(1)
+        }
       }
     })
 
@@ -65,40 +72,50 @@ describe("Core", () => {
       const BOB_DEPOSIT_AMOUNT = BigNumber.from(2).mul(BigNumber.from(10).pow(BigNumber.from(6)))
       const ALICE_DEPOSIT_AMOUNT = BigNumber.from(3).mul(BigNumber.from(10).pow(BigNumber.from(6)))
 
-      // Mint USDC
+      // Mint Asset
       if (network.name == "hardhat") {
-        await asset.allocateTo(bob.address, BOB_DEPOSIT_AMOUNT)
-        await asset.allocateTo(alice.address, ALICE_DEPOSIT_AMOUNT)
+        if (config[network.name].faucetType == FaucetType.FaucetToken) {
+          let tx = await asset.allocateTo(bob.address, BOB_DEPOSIT_AMOUNT)
+          let tx2 = await asset.allocateTo(alice.address, ALICE_DEPOSIT_AMOUNT)
+          await Promise.all([tx.wait(1), tx2.wait(1)])
+        } else if (config[network.name].faucetType == FaucetType.Fauceteer) {
+          let fauceteer: Fauceteer = await ethers.getContractAt("Fauceteer", config[network.name].faucet)
+          fauceteer = fauceteer.connect(alice)
+          let tx = await fauceteer.drip(asset.address)
+          await tx.wait(1)
+          fauceteer = fauceteer.connect(bob)
+          tx = await fauceteer.drip(asset.address)
+          await tx.wait(1)
+        }
       }
-      console.log("First!!")
 
       // Deposit
+      console.log(await vault.exchangeRate())
       let tx = await asset.approve(vault.address, DEPOSIT_AMOUNT)
       await tx.wait(1)
-
-      console.log("Allowance: " + (await asset.allowance(account.address, vault.address)))
       tx = await vault.deposit(DEPOSIT_AMOUNT)
       await tx.wait(1)
-      console.log("FIRST DONE!")
       asset = asset.connect(bob)
       vault = vault.connect(bob)
+      console.log(await vault.exchangeRate())
       tx = await asset.approve(vault.address, BOB_DEPOSIT_AMOUNT)
       await tx.wait(1)
       tx = await vault.deposit(BOB_DEPOSIT_AMOUNT)
       await tx.wait(1)
-      console.log("SECOND DONE!")
       asset = asset.connect(alice)
       vault = vault.connect(alice)
+      console.log(await vault.exchangeRate())
       tx = await asset.approve(vault.address, ALICE_DEPOSIT_AMOUNT)
       await tx.wait(1)
       tx = await vault.deposit(ALICE_DEPOSIT_AMOUNT)
       await tx.wait(1)
-      console.log("THIRD DONE!")
+      console.log(await vault.exchangeRate())
 
-
-
+      console.log(`Main Vault Shares: ${await vault.balanceOf(account.address)}`)
+      console.log(`Alice Vault Shares: ${await vault.balanceOf(alice.address)}`)
+      console.log(`Bob Vault Shares: ${await vault.balanceOf(bob.address)}`)
+      console.log(`Vault cTokens: ${await cAsset.balanceOf(vault.address)}`)
       // TODO: Fix this, current this section of testing is wrong!!
-
 
       // Expect the borrow amount to be slightly higher than the total supply.
       // While the vault is aiming to be spot on each time it deposits,

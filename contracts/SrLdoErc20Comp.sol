@@ -52,12 +52,13 @@ contract SrLdoErc20Comp is ERC20 {
 
     // Returns the rate of cTokens to shares
     // shares * exchangeRate() = cTokens
+    /// @dev always grab the exchange rate before interacting with cTokens.
     function exchangeRate() public view returns (uint256) {
         uint256 totalSupply = totalSupply();
         return totalSupply == 0 ? 10**decimals() : (cAsset.balanceOf(address(this)) * 10**decimals()) / totalSupply;
     }
 
-    /// @dev This token has the same amount of decimals as the underlying cToken
+    /// @dev This token has the same amount of decimals as the cAsset
     function decimals() public view override returns (uint8) {
         return cAssetDecimals;
     }
@@ -72,6 +73,9 @@ contract SrLdoErc20Comp is ERC20 {
     function deposit(uint256 assets) public {
         asset.transferFrom(msg.sender, address(this), assets);
 
+        // Snapshot exchange rate before cTokens are deposited to prevent incorrect rate calculation
+        uint256 exchangeRateSnapshot = exchangeRate();
+
         // Deposit into Compound
         uint256 cAssetBalanceBefore = cAsset.balanceOf(address(this));
         asset.approve(address(cAsset), assets);
@@ -79,7 +83,7 @@ contract SrLdoErc20Comp is ERC20 {
         uint256 cAssetsMinted = cAsset.balanceOf(address(this)) - cAssetBalanceBefore;
 
         rebalance();
-        _mint(msg.sender, cAssetsMinted);
+        _mint(msg.sender, (cAssetsMinted * 10**decimals()) / exchangeRateSnapshot);
     }
     
     function rebalance() public {
