@@ -181,14 +181,28 @@ contract SrLdoErc20CompOG is ERC20 {
         uint256 percentageRedeeming = (shares * decimals()) / totalSupply();
         _burn(msg.sender, shares);
 
+        // Swap stBorrow -> borrow
+        uint256 stBorrowRepayAmount = (stBorrow.balanceOf(address(this)) * percentageRedeeming) / 10**decimals();
+        stBorrow.approve(address(router), stBorrowRepayAmount);
+        uint256 borrowRepayAmount = router.swapExactTokensForTokens(
+            stBorrowRepayAmount,
+            0,
+            stBorrowPath,
+            address(this),
+            block.timestamp
+        )[1];
+
+        // Calculate the percentage of tokens that are actually being paid back (will differ because of swap fees, slippage)
+        uint256 percentageRepaid = (borrowRepayAmount * 10**borrowDecimals) / cBorrow.borrowBalanceCurrent(address(this));
+
         // Repay borrows
         require(
-            cBorrow.repayBorrow((cBorrow.borrowBalanceCurrent(address(this)) * percentageRedeeming) / 10**decimals()) == 0,
+            cBorrow.repayBorrow(borrowRepayAmount) == 0,
             "Surge: Compound repay failed"
         );
 
         // Withdraw asset
-        uint256 withdrawnAssets = (cAsset.balanceOfUnderlying(address(this)) * percentageRedeeming) / 10**decimals();
+        uint256 withdrawnAssets = (cAsset.balanceOfUnderlying(address(this)) * percentageRepaid) / 10**borrowDecimals;
         require(cBorrow.redeemUnderlying(withdrawnAssets) == 0, "Surge: Compound withdraw failed");
 
         // Transfer asset to user
