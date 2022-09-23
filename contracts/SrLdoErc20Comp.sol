@@ -7,7 +7,6 @@ import {Moontroller} from "./interfaces/Moontroller.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IUniswapV2Router02} from "./interfaces/IUniswapV2Router02.sol";
 import {WstKSM} from "./lido/wstKSM.sol";
-import "hardhat/console.sol";
 
 /// @author Xavier D'Mello www.xavierdmello.com
 contract SrLdoErc20Comp is ERC20 {
@@ -132,24 +131,21 @@ contract SrLdoErc20Comp is ERC20 {
             // Borrow & stake more tokens
             uint256 borrowAmount = borrowTarget - borrowBalanceCurrent;
             require(cBorrow.borrow(borrowAmount) == 0, "Surge: Compound borrow failed");
-            // borrow.approve(address(stBorrow), borrowAmount);
-            // stBorrow.submit(borrowAmount);
+            borrow.approve(address(stBorrow), borrowAmount);
+            stBorrow.submit(borrowAmount);
         } else if (borrowTarget < borrowBalanceCurrent) {
             // Unstake & repay some tokens
             uint256 repayAmount = borrowBalanceCurrent - borrowTarget;
-            // stBorrow.approve(address(router), type(uint256).max);
-            // router.swapTokensForExactTokens(repayAmount, type(uint256).max, stBorrowPath, address(this), block.timestamp);
+            stBorrow.approve(address(router), type(uint256).max);
+            router.swapTokensForExactTokens(repayAmount, type(uint256).max, stBorrowPath, address(this), block.timestamp);
             require(cBorrow.repayBorrow(repayAmount) == 0, "Surge: Compound repay failed");
         }
     }
 
-    // To recieve MOVR/GLMR rewards
-    receive() external payable {}
-
     /**
-     * @notice Claims compound rewards, swaps them into asset, and deposits them back into compound.
      * TODO: Decide to call this function every time rebalance() is called, or only perodically (to save gas)
-     * @dev Moonwell uses a modified comp rewards system with additional rewards.
+     * @notice Claims Compound rewards, swaps them into asset, and deposits them back into Compound.
+     * @dev Moonwell uses a modified Compound rewards system with additional rewards.
      */
     function claimMoonwellRewards() public {
         ERC20 rewardToken = ERC20(rewardTokenPath[0]); // MFAM/WELL
@@ -167,6 +163,9 @@ contract SrLdoErc20Comp is ERC20 {
         require(cAsset.mint(asset.balanceOf(address(this))) == 0, "Surge: Compound deposit failed");
     }
 
+    // To recieve MOVR/GLMR rewards
+    receive() external payable {}
+
     /**
      * @notice Converts wstKSM to xcKSM using the LP.
      * Not reccomended unless you need your tokens fast & are willing to pay fees and slippage.
@@ -182,14 +181,28 @@ contract SrLdoErc20Comp is ERC20 {
         uint256 percentageRedeeming = (shares * decimals()) / totalSupply();
         _burn(msg.sender, shares);
 
+        // Swap stBorrow -> borrow
+        uint256 stBorrowRepayAmount = (stBorrow.balanceOf(address(this)) * percentageRedeeming) / 10**decimals();
+        stBorrow.approve(address(router), stBorrowRepayAmount);
+        uint256 borrowRepayAmount = router.swapExactTokensForTokens(
+            stBorrowRepayAmount,
+            0,
+            stBorrowPath,
+            address(this),
+            block.timestamp
+        )[1];
+
+        // Calculate the percentage of tokens that are actually being paid back (will differ because of swap fees & slippage)
+        uint256 percentageRepaid = (borrowRepayAmount * 10**borrowDecimals) / cBorrow.borrowBalanceCurrent(address(this));
+
         // Repay borrows
         require(
-            cBorrow.repayBorrow((cBorrow.borrowBalanceCurrent(address(this)) * percentageRedeeming) / 10**decimals()) == 0,
+            cBorrow.repayBorrow(borrowRepayAmount) == 0,
             "Surge: Compound repay failed"
         );
 
         // Withdraw asset
-        uint256 withdrawnAssets = (cAsset.balanceOfUnderlying(address(this)) * percentageRedeeming) / 10**decimals();
+        uint256 withdrawnAssets = (cAsset.balanceOfUnderlying(address(this)) * percentageRepaid) / 10**borrowDecimals;
         require(cBorrow.redeemUnderlying(withdrawnAssets) == 0, "Surge: Compound withdraw failed");
 
         // Transfer asset to user
