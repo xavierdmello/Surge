@@ -2,9 +2,11 @@ import { assert, expect } from "chai"
 import { CErc20, ERC20, SrLdoErc20Comp, PriceOracle, Moontroller } from "../typechain-types"
 import { config } from "../hardhat-helper-config"
 import { ethers, network } from "hardhat"
-import {mine} from "@nomicfoundation/hardhat-network-helpers"
+import { mine } from "@nomicfoundation/hardhat-network-helpers"
 import { ERC20MintMod } from "../typechain-types/contracts/ERC20MintMod"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
+import { verify } from "../scripts/verify"
+import { text } from "stream/consumers"
 
 let vault: SrLdoErc20Comp
 let asset: ERC20MintMod
@@ -49,7 +51,24 @@ describe("Deploy", () => {
     account = accounts[0]
     bob = accounts[1]
     alice = accounts[2]
-  })
+
+    console.log("Waiting for confirmations...")
+    await vault.deployTransaction.wait(3)
+    console.log("Starting verification...")
+
+    // Verify contract
+    await verify(vault.address, [
+      config[network.name].cAsset,
+      config[network.name].cBorrow,
+      config[network.name].stBorrow,
+      config[network.name].rewardTokenPath,
+      config[network.name].rewardEthPath,
+      config[network.name].stBorrowPath,
+      config[network.name].router,
+      "Surge Vault",
+      "srLdoErc20Comp",
+    ])
+  }).timeout(500000)
 })
 ;(network.name == "hardhat" ? describe : describe.skip)("Mint", () => {
   // Multichain tokens only (sorry!)
@@ -60,9 +79,9 @@ describe("Deploy", () => {
     })
     const imposter = await ethers.getSigner(config[network.name].mintAccount)
     asset = asset.connect(imposter)
-    await asset.mint(account.address, DEPOSIT_AMOUNT*B(20))
-    await asset.mint(bob.address, DEPOSIT_AMOUNT*B(20))
-    await asset.mint(alice.address, DEPOSIT_AMOUNT*B(20))
+    await asset.mint(account.address, DEPOSIT_AMOUNT * B(20))
+    await asset.mint(bob.address, DEPOSIT_AMOUNT * B(20))
+    await asset.mint(alice.address, DEPOSIT_AMOUNT * B(20))
     asset = asset.connect(account)
   })
 })
@@ -74,11 +93,11 @@ describe("Core", () => {
     await asset.approve(vault.address, DEPOSIT_AMOUNT)
     await vault.deposit(DEPOSIT_AMOUNT)
 
-    console.log("Account shares balance: "+ await vault.balanceOf(account.address))
-    console.log("cAsset Balance of vault: " + await cAsset.balanceOf(vault.address))
+    console.log("Account shares balance: " + (await vault.balanceOf(account.address)))
+    console.log("cAsset Balance of vault: " + (await cAsset.balanceOf(vault.address)))
     console.log("borrow Balance of vault: " + (await borrow.balanceOf(vault.address)))
 
-    await network.provider.send("evm_increaseTime", [3600*3600*10])
+    await network.provider.send("evm_increaseTime", [3600 * 3600 * 10])
     await mine(100000)
 
     await vault.claimMoonwellRewards()

@@ -10,6 +10,8 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY!
 const BOB = process.env.BOB!
 const ALICE = process.env.ALICE!
 const MOONRIVER_RPC = process.env.MOONRIVER_RPC!
+const MOONSCAN_KEY= process.env.MOONSCAN_KEY!
+const REAL_KEY=process.env.REAL_KEY!
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -30,7 +32,7 @@ const config: HardhatUserConfig = {
     moonbeam: { url: "https://rpc.api.moonbeam.network", accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 1284 },
     moonriver: {
       url: MOONRIVER_RPC,
-      accounts: [PRIVATE_KEY, BOB, ALICE],
+      accounts: [REAL_KEY, PRIVATE_KEY, BOB, ALICE],
       chainId: 1285,
     },
   },
@@ -43,6 +45,11 @@ const config: HardhatUserConfig = {
     coinmarketcap: CMC_KEY,
     token: "MOVR",
   },
+  etherscan:{
+    apiKey: {
+      moonriver: MOONSCAN_KEY
+    }
+  }
 }
 
 export default config

@@ -138,6 +138,7 @@ contract SrLdoErc20Comp is ERC20 {
             uint256 repayAmount = borrowBalanceCurrent - borrowTarget;
             stBorrow.approve(address(router), type(uint256).max);
             router.swapTokensForExactTokens(repayAmount, type(uint256).max, stBorrowPath, address(this), block.timestamp);
+            borrow.approve(address(cBorrow), repayAmount);
             require(cBorrow.repayBorrow(repayAmount) == 0, "Surge: Compound repay failed");
         }
     }
@@ -196,6 +197,7 @@ contract SrLdoErc20Comp is ERC20 {
         uint256 percentageRepaid = (borrowRepayAmount * 10**borrowDecimals) / cBorrow.borrowBalanceCurrent(address(this));
 
         // Repay borrows
+        borrow.approve(address(cBorrow), borrowRepayAmount);
         require(
             cBorrow.repayBorrow(borrowRepayAmount) == 0,
             "Surge: Compound repay failed"
