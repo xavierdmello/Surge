@@ -3,12 +3,13 @@ import "@nomicfoundation/hardhat-toolbox"
 import "dotenv/config"
 import { getEnabledCategories } from "trace_events"
 
+// Coinmarketcap API key (for gas reporter)
+const CMC_KEY = process.env.CMC_KEY!
+
 const PRIVATE_KEY = process.env.PRIVATE_KEY!
 const BOB = process.env.BOB!
 const ALICE = process.env.ALICE!
-
-const BSC_TEST_RPC = process.env.BSC_TEST_RPC!
-const GOERLI_RPC = process.env.GOERLI_RPC!
+const MOONRIVER_RPC = process.env.MOONRIVER_RPC!
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -20,37 +21,27 @@ const config: HardhatUserConfig = {
       },
     },
   },
-
   defaultNetwork: "hardhat",
-
   networks: {
     moonbase: { url: "https://rpc.api.moonbase.moonbeam.network", accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 1287 },
     hardhat: {
-      forking: {
-        // // Moonbase:
-        // url: "https://rpc.api.moonbase.moonbeam.network",
-        // blockNumber: 2750000,
-
-        // // BSC
-        // url: "https://bsc-dataseed.binance.org/",
-        // blockNumber: 21530000,
-
-        // // BSC_TEST
-        // url: BSC_TEST_RPC,
-
-        // Goerli
-        url: GOERLI_RPC,
-        blockNumber: 7639220,
-      },
+      forking: { url: MOONRIVER_RPC, blockNumber: 2623000 },
     },
-    bsc: { url: "https://bsc-dataseed.binance.org/", accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 56 },
-    bsc_test: { url: BSC_TEST_RPC, accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 97 },
-    goerli: { url: GOERLI_RPC, accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 5 },
+    moonbeam: { url: "https://rpc.api.moonbeam.network", accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 1284 },
+    moonriver: {
+      url: MOONRIVER_RPC,
+      accounts: [PRIVATE_KEY, BOB, ALICE],
+      chainId: 1285,
+    },
   },
   gasReporter: {
     enabled: false,
     noColors: true,
     outputFile: "gas-report.txt",
+    currency: "USD",
+    gasPriceApi: "https://api-moonriver.moonscan.io/api?module=proxy&action=eth_gasPrice",
+    coinmarketcap: CMC_KEY,
+    token: "MOVR",
   },
 }
 

@@ -2,6 +2,12 @@ interface HelperConfig {
   [network: string]: {
     cAsset: string
     cBorrow: string
+    stBorrow: string
+    rewardTokenPath: string[]
+    rewardEthPath: string[]
+    stBorrowPath: string[]
+    router: string
+    mintAccount: string
   }
 }
 
@@ -9,21 +15,33 @@ export const devChains = new Set<string>(["moonbase", "bsc_test", "hardhat", "go
 
 // Addresses for important contracts on each network
 export const config: HelperConfig = {
-  moonbase: {
-    cAsset: "0x18f324E21846F1C21F4fbF8228705B17897eF15A", // mUSDC
-    cBorrow: "0xa28C4680058f4A73f6172A6ed23C9E624E443CFB", // mETH (for the time being)
-  },
-  bsc_test: {
-    cAsset: "0xD5C4C2e2facBEB59D0216D0595d63FcDc6F9A1a7", // vUSDC
-    cBorrow: "0x74469281310195A04840Daf6EdF576F559a3dE80", // vSXP (for the time being)
-  },
   hardhat: {
-    // Goerli
-    cAsset: "0x0545a8eaF7ff6bB6F708CbB544EA55DBc2ad7b2a", // cDAI
-    cBorrow: "0x2073d38198511F5Ed8d893AB43A03bFDEae0b1A5", // cUNI
+    // Moonriver
+    cAsset: "0xd0670AEe3698F66e2D4dAf071EB9c690d978BFA8", // mUSDC
+    cBorrow: "0x6503D905338e2ebB550c9eC39Ced525b612E77aE", // mETH (for the time being)
+    stBorrow: "0x3bfd113ad0329a7994a681236323fb16E16790e3", // wstKSM
+    rewardTokenPath: [
+      "0xBb8d88bcD9749636BC4D2bE22aaC4Bb3B01A58F1",
+      "0x98878B06940aE243284CA214f92Bb71a2b032B8A",
+      "0xE3F5a90F9cb311505cd691a46596599aA1A0AD7D",
+    ], // MFAM -> WMOVR -> USDC
+    rewardEthPath: ["0x98878b06940ae243284ca214f92bb71a2b032b8a", "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d"], // WMOVR -> USDC
+    stBorrowPath: ["0x3bfd113ad0329a7994a681236323fb16e16790e3", "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080"], // wstKSM -> xcKSM
+    router: "0xAA30eF758139ae4a7f798112902Bf6d65612045f",
+    mintAccount: "0x10c6b61DbF44a083Aec3780aCF769C77BE747E23",
   },
-  goerli: {
-    cAsset: "0x0545a8eaF7ff6bB6F708CbB544EA55DBc2ad7b2a", // cDAI
-    cBorrow: "0x2073d38198511F5Ed8d893AB43A03bFDEae0b1A5", // cUNI
+  moonriver: {
+    cAsset: "0xd0670AEe3698F66e2D4dAf071EB9c690d978BFA8", // mUSDC
+    cBorrow: "0x6503D905338e2ebB550c9eC39Ced525b612E77aE", // mETH (for the time being)
+    stBorrow: "0x3bfd113ad0329a7994a681236323fb16E16790e3", // wstKSM
+    rewardTokenPath: [
+      "0xBb8d88bcD9749636BC4D2bE22aaC4Bb3B01A58F1",
+      "0x98878B06940aE243284CA214f92Bb71a2b032B8A",
+      "0xE3F5a90F9cb311505cd691a46596599aA1A0AD7D",
+    ], // MFAM -> WMOVR -> USDC
+    rewardEthPath: ["0x98878b06940ae243284ca214f92bb71a2b032b8a", "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d"], // WMOVR -> USDC
+    stBorrowPath: ["0x3bfd113ad0329a7994a681236323fb16e16790e3", "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080"], // wstKSM -> xcKSM
+    router: "0xAA30eF758139ae4a7f798112902Bf6d65612045f",
+    mintAccount: "0x10c6b61DbF44a083Aec3780aCF769C77BE747E23",
   },
 }

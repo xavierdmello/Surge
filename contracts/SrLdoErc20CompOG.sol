@@ -7,10 +7,9 @@ import {Moontroller} from "./interfaces/Moontroller.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IUniswapV2Router02} from "./interfaces/IUniswapV2Router02.sol";
 import {WstKSM} from "./lido/wstKSM.sol";
-import "hardhat/console.sol";
 
 /// @author Xavier D'Mello www.xavierdmello.com
-contract SrLdoErc20Comp is ERC20 {
+contract SrLdoErc20CompOG is ERC20 {
     // Compound
     ERC20 public immutable asset;
     ERC20 public immutable borrow;
@@ -132,24 +131,21 @@ contract SrLdoErc20Comp is ERC20 {
             // Borrow & stake more tokens
             uint256 borrowAmount = borrowTarget - borrowBalanceCurrent;
             require(cBorrow.borrow(borrowAmount) == 0, "Surge: Compound borrow failed");
-            // borrow.approve(address(stBorrow), borrowAmount);
-            // stBorrow.submit(borrowAmount);
+            borrow.approve(address(stBorrow), borrowAmount);
+            stBorrow.submit(borrowAmount);
         } else if (borrowTarget < borrowBalanceCurrent) {
             // Unstake & repay some tokens
             uint256 repayAmount = borrowBalanceCurrent - borrowTarget;
-            // stBorrow.approve(address(router), type(uint256).max);
-            // router.swapTokensForExactTokens(repayAmount, type(uint256).max, stBorrowPath, address(this), block.timestamp);
+            stBorrow.approve(address(router), type(uint256).max);
+            router.swapTokensForExactTokens(repayAmount, type(uint256).max, stBorrowPath, address(this), block.timestamp);
             require(cBorrow.repayBorrow(repayAmount) == 0, "Surge: Compound repay failed");
         }
     }
 
-    // To recieve MOVR/GLMR rewards
-    receive() external payable {}
-
     /**
-     * @notice Claims compound rewards, swaps them into asset, and deposits them back into compound.
      * TODO: Decide to call this function every time rebalance() is called, or only perodically (to save gas)
-     * @dev Moonwell uses a modified comp rewards system with additional rewards.
+     * @notice Claims Compound rewards, swaps them into asset, and deposits them back into Compound.
+     * @dev Moonwell uses a modified Compound rewards system with additional rewards.
      */
     function claimMoonwellRewards() public {
         ERC20 rewardToken = ERC20(rewardTokenPath[0]); // MFAM/WELL
@@ -166,6 +162,9 @@ contract SrLdoErc20Comp is ERC20 {
         asset.approve(address(cAsset), asset.balanceOf(address(this)));
         require(cAsset.mint(asset.balanceOf(address(this))) == 0, "Surge: Compound deposit failed");
     }
+
+    // To recieve MOVR/GLMR rewards
+    receive() external payable {}
 
     /**
      * @notice Converts wstKSM to xcKSM using the LP.
