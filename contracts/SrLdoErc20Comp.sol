@@ -118,8 +118,12 @@ contract SrLdoErc20Comp is ERC20 {
         _mint(msg.sender, (cAssetsMinted * 10**decimals()) / exchangeRateSnapshot);
     }
 
-    // TODO: Decide to call this function every time deposit() is called, or only perodically (to save gas)
-    // TODO: Fix rebalance to work with compouding (resupplying and borrowing USDC)
+    /**
+     * Rebalances borrow amount to be safteyMargin% of maximum avalible borrow
+     * @notice does not compound rewards
+     * TODO: Implement reward compounding
+     * TODO: Decide to call this function every time deposit() is called, or only perodically (to save gas)
+     */
     function rebalance() public {
         // Exchange rate asset:borrow. Not to be confused with exchangeRate()
         uint256 assetExchangeRate = (priceOracle.getUnderlyingPrice(cAsset) * 10**(36 - borrowDecimals)) /
@@ -146,7 +150,7 @@ contract SrLdoErc20Comp is ERC20 {
 
     /**
      * TODO: Decide to call this function every time rebalance() is called, or only perodically (to save gas)
-     * @notice Claims Compound rewards, swaps them into asset, and deposits them back into Compound.
+     * Claims Compound rewards, swaps them into asset, and deposits them back into Compound.
      * @dev Moonwell uses a modified Compound rewards system with additional rewards.
      */
     function claimMoonwellRewards() public {
