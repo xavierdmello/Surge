@@ -53,7 +53,7 @@ describe("Deploy", () => {
     alice = accounts[2]
 
     console.log("Waiting for confirmations...")
-    await vault.deployTransaction.wait(3)
+    await vault.deployTransaction.wait(2)
     console.log("Starting verification...")
 
     // Verify contract

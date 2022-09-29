@@ -119,6 +119,7 @@ contract SrLdoErc20Comp is ERC20 {
     }
 
     // TODO: Decide to call this function every time deposit() is called, or only perodically (to save gas)
+    // TODO: Fix rebalance to work with compouding (resupplying and borrowing USDC)
     function rebalance() public {
         // Exchange rate asset:borrow. Not to be confused with exchangeRate()
         uint256 assetExchangeRate = (priceOracle.getUnderlyingPrice(cAsset) * 10**(36 - borrowDecimals)) /
@@ -179,7 +180,7 @@ contract SrLdoErc20Comp is ERC20 {
      * TODO: Test theory
      */
     function quickWithdraw(uint256 shares) public {
-        uint256 percentageRedeeming = (shares * decimals()) / totalSupply();
+        uint256 percentageRedeeming = (shares * 10**decimals()) / totalSupply();
         _burn(msg.sender, shares);
 
         // Swap stBorrow -> borrow

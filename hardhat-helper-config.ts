@@ -11,14 +11,14 @@ interface HelperConfig {
   }
 }
 
-export const devChains = new Set<string>(["moonbase", "bsc_test", "hardhat", "goerli"])
+export const devChains = new Set<string>(["moonbase", "moonriver", "hardhat", "moonbeam"])
 
 // Addresses for important contracts on each network
 export const config: HelperConfig = {
   hardhat: {
     // Moonriver
     cAsset: "0xd0670AEe3698F66e2D4dAf071EB9c690d978BFA8", // mUSDC
-    cBorrow: "0x6503D905338e2ebB550c9eC39Ced525b612E77aE", // mETH (for the time being)
+    cBorrow: "0x6503D905338e2ebB550c9eC39Ced525b612E77aE", // mETH (for the testing purposes)
     stBorrow: "0x3bfd113ad0329a7994a681236323fb16E16790e3", // wstKSM
     rewardTokenPath: [
       "0xBb8d88bcD9749636BC4D2bE22aaC4Bb3B01A58F1",
@@ -32,7 +32,7 @@ export const config: HelperConfig = {
   },
   moonriver: {
     cAsset: "0xd0670AEe3698F66e2D4dAf071EB9c690d978BFA8", // mUSDC
-    cBorrow: "0x6503D905338e2ebB550c9eC39Ced525b612E77aE", // mETH (for the time being)
+    cBorrow: "0xa0D116513Bd0B8f3F14e6Ea41556c6Ec34688e0f", // mxcKSM
     stBorrow: "0x3bfd113ad0329a7994a681236323fb16E16790e3", // wstKSM
     rewardTokenPath: [
       "0xBb8d88bcD9749636BC4D2bE22aaC4Bb3B01A58F1",
