@@ -206,7 +206,7 @@ contract SrLdoErc20Comp is ERC20 {
 
         // Withdraw asset
         uint256 withdrawnAssets = (cAsset.balanceOfUnderlying(address(this)) * percentageRepaid) / 10**borrowDecimals;
-        require(cBorrow.redeemUnderlying(withdrawnAssets) == 0, "Surge: Compound withdraw failed");
+        require(cAsset.redeemUnderlying(withdrawnAssets) == 0, "Surge: Compound withdraw failed");
 
         // Transfer asset to user
         asset.transfer(msg.sender, withdrawnAssets);
