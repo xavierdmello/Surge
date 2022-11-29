@@ -9,7 +9,7 @@ import {IUniswapV2Router02} from "./interfaces/IUniswapV2Router02.sol";
 import {WstKSM} from "./lido/wstKSM.sol";
 
 /// @author Xavier D'Mello www.xavierdmello.com
-contract SrLdoErc20Comp is ERC20 {
+contract VaultMoonwellLidoBeefy is ERC20 {
     // Compound
     ERC20 public immutable asset;
     ERC20 public immutable borrow;
@@ -70,11 +70,17 @@ contract SrLdoErc20Comp is ERC20 {
         comptroller = Moontroller(address(_cAsset.comptroller()));
         priceOracle = comptroller.oracle();
 
-        // Enter Market
+        enterMarket();
+        approveContracts();
+    }
+    
+    function enterMarket() internal {
         address[] memory market = new address[](1);
         market[0] = address(cAsset);
         require(comptroller.enterMarkets(market)[0] == 0, "Surge: Compound Enter Market failed");
     }
+
+    function approveContracts() internal
 
     /**
      * Returns the rate of cTokens to shares
@@ -223,7 +229,7 @@ contract SrLdoErc20Comp is ERC20 {
         asset.transfer(msg.sender, withdrawnAssets);
     }
 
-        /**
+    /**
      * @notice Converts wstKSM to xcKSM using the LP.
      * Not reccomended unless you need your tokens fast & are willing to pay fees and slippage.
      * For feeless (but slow) withdrawls, use the normal withdraw().
