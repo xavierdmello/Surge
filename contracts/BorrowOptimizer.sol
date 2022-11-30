@@ -12,6 +12,8 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
 
     constructor(ERC20 _asset, ERC20 _borrow, string memory _name, string memory _symbol) BaseVault(_asset, _name, _symbol) {
         borrow = borrow;
+
+        readyMarkets();
     }
 
 
