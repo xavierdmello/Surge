@@ -8,4 +8,8 @@ incomplete TODO:
 - sandwich attack protection
 - compounding
 - gelato integration
-- unbond withdraws
+- unbond withdrawls
+- pausing
+- access protection on rebalance() so people don't spam it and incure bad debt
+- batch withdrawls so vaults don't get limited by the 20 unbond requests at a time limit on Lido
+- create interfaces and remove redundant files

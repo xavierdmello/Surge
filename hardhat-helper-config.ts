@@ -6,6 +6,8 @@ interface HelperConfig {
     rewardTokenPath: string[]
     rewardEthPath: string[]
     stBorrowPath: string[]
+    borrowPath: string[]
+    compoundPath: string[]
     router: string
     mintAccount: string
   }
@@ -27,6 +29,17 @@ export const config: HelperConfig = {
     ], // MFAM -> WMOVR -> USDC
     rewardEthPath: ["0x98878b06940ae243284ca214f92bb71a2b032b8a", "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d"], // WMOVR -> USDC
     stBorrowPath: ["0x3bfd113ad0329a7994a681236323fb16e16790e3", "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080"], // wstKSM -> xcKSM
+    borrowPath: [
+      "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080",
+      "0x98878b06940ae243284ca214f92bb71a2b032b8a",
+      "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
+    ], // xcKSM -> WMOVR -> USDC
+    compoundPath: [
+      "0x3bfd113ad0329a7994a681236323fb16e16790e3",
+      "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080",
+      "0x98878b06940ae243284ca214f92bb71a2b032b8a",
+      "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
+    ], // wstKSM -> xcKSM -> WMOVR -> USDC
     router: "0xAA30eF758139ae4a7f798112902Bf6d65612045f",
     mintAccount: "0x10c6b61DbF44a083Aec3780aCF769C77BE747E23",
   },
@@ -41,6 +54,17 @@ export const config: HelperConfig = {
     ], // MFAM -> WMOVR -> USDC
     rewardEthPath: ["0x98878b06940ae243284ca214f92bb71a2b032b8a", "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d"], // WMOVR -> USDC
     stBorrowPath: ["0x3bfd113ad0329a7994a681236323fb16e16790e3", "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080"], // wstKSM -> xcKSM
+    borrowPath: [
+      "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080",
+      "0x98878b06940ae243284ca214f92bb71a2b032b8a",
+      "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
+    ], // xcKSM -> WMOVR -> USDC
+    compoundPath: [
+      "0x3bfd113ad0329a7994a681236323fb16e16790e3",
+      "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080",
+      "0x98878b06940ae243284ca214f92bb71a2b032b8a",
+      "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
+    ], // wstKSM -> xcKSM -> WMOVR -> USDC
     router: "0xAA30eF758139ae4a7f798112902Bf6d65612045f",
     mintAccount: "0x10c6b61DbF44a083Aec3780aCF769C77BE747E23",
   },

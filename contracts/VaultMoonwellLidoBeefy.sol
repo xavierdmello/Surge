@@ -189,57 +189,6 @@ contract VaultMoonwellLidoBeefy is ERC20 {
      * Option 1 probably costs less gas, but may have more rounding errors.
      * TODO: Test theory
      */
-    function quickWithdraw2(uint256 shares) public {
-            // Exchange rate asset:borrow. Not to be confused with exchangeRate()
-        uint256 assetExchangeRate = (priceOracle.getUnderlyingPrice(cAsset) * 10**(36 - borrowDecimals)) /
-            priceOracle.getUnderlyingPrice(cBorrow); // In (36-assetDecimals) decimals.
-        uint256 borrowTarget = (((cAsset.balanceOfUnderlying(address(this)) * assetExchangeRate) / 10**(36 - borrowDecimals)) *
-            borrowTargetMantissa()) / 1e18; // In borrowDecimals decimals.
-        uint256 borrowBalanceCurrent = cBorrow.borrowBalanceCurrent(address(this));
-
-        uint256 percentageRedeeming = (shares * 10**decimals()) / totalSupply();
-        _burn(msg.sender, shares);
-
-        // Swap stBorrow -> borrow
-        uint256 stBorrowRepayAmount = (stBorrow.balanceOf(address(this)) * percentageRedeeming) / 10**decimals();
-        stBorrow.approve(address(router), stBorrowRepayAmount);
-        uint256 borrowRepayAmount = router.swapExactTokensForTokens(
-            stBorrowRepayAmount,
-            0,
-            stBorrowPath,
-            address(this),
-            block.timestamp
-        )[1];
-
-        // Calculate the percentage of tokens that are actually being paid back (will differ because of swap fees & slippage)
-        uint256 percentageRepaid = (borrowRepayAmount * 10**borrowDecimals) / cBorrow.borrowBalanceCurrent(address(this));
-
-        // Repay borrows
-        borrow.approve(address(cBorrow), borrowRepayAmount);
-        require(
-            cBorrow.repayBorrow(borrowRepayAmount) == 0,
-            "Surge: Compound repay failed"
-        );
-
-        // Withdraw asset
-        uint256 withdrawnAssets = (cAsset.balanceOfUnderlying(address(this)) * percentageRepaid) / 10**borrowDecimals;
-        require(cAsset.redeemUnderlying(withdrawnAssets) == 0, "Surge: Compound withdraw failed");
-
-        // Transfer asset to user
-        asset.transfer(msg.sender, withdrawnAssets);
-    }
-
-    /**
-     * @notice Converts wstKSM to xcKSM using the LP.
-     * Not reccomended unless you need your tokens fast & are willing to pay fees and slippage.
-     * For feeless (but slow) withdrawls, use the normal withdraw().
-     * @param shares Amount of shares to redeem for asset
-     * @dev Two ways to do this:
-     * 1. Caclulate percentage of shares owned, extrapolate that to debt to repay and percentage claimable of cTokens
-     * 2. Calculate direct shares => ctoken => debt exchange rate
-     * Option 1 probably costs less gas, but may have more rounding errors.
-     * TODO: Test theory
-     */
     function quickWithdraw(uint256 shares) public {
         uint256 percentageRedeeming = (shares * 10**decimals()) / totalSupply();
         _burn(msg.sender, shares);
