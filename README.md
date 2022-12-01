@@ -31,5 +31,5 @@ Based off of the [Autolido](https://docs.google.com/document/d/1wQ-vzP7TlSUF-Pgj
 - check rounding math, look into rounding down
 
 #### Notes:
-- bad debt is caused when debt > stakedValueInAsset
+- bad debt is caused when debt > stakedValueInAsset (i.e cost to borrow > staking rewards for too long)
     - can be fixed by sending the staked token directly to the vault
