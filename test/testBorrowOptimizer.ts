@@ -53,7 +53,7 @@ describe("Borrow Optimizer", function () {
       let { borrowOptimizer, owner, cAsset, asset , want} = await loadFixture(deployFixture)
       await mintFiatTokenV2(owner, asset.address, owner.address, ethers.utils.parseUnits("10", 6))
       await borrowOptimizer.deposit(BigInt(1e6), owner.address)
-      await borrowOptimizer.withdraw(100000, owner.address, owner.address)
+      await borrowOptimizer.withdraw(999999, owner.address, owner.address)
       await borrowOptimizer.rebalance()
       console.log(`Vault Shares: ${await borrowOptimizer.balanceOf(owner.address)}`)
 

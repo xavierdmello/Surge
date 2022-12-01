@@ -25,3 +25,4 @@ Based off of the [Autolido](https://docs.google.com/document/d/1wQ-vzP7TlSUF-Pgj
 - make sure people can withdraw even with an oracle error
 - compound lending market rewards
 - fix borrowTarget() not including interest on the borrow
+- check rounding math, look into rounding down
