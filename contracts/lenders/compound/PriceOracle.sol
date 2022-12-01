@@ -14,4 +14,5 @@ abstract contract PriceOracle {
       *  Zero means the price is unavailable.
       */
     function getUnderlyingPrice(CToken cToken) virtual external view returns (uint);
+    function price(string memory symbol) virtual external view returns (uint);
 }

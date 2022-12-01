@@ -3,26 +3,34 @@ pragma solidity ^0.8.0;
 import {IBaseLender} from "./IBaseLender.sol";
 import {CErc20, EIP20Interface} from "./compound/CErc20.sol";
 
-import {Moontroller} from "./interfaces/Moontroller.sol";
+import {Moontroller} from "../interfaces/Moontroller.sol";
 
 contract MoonwellLender is IBaseLender {
     Moontroller public immutable comptroller;
     CErc20 public immutable cAsset;
-    CErc20 public immutable cBorrow;
+    CErc20 public immutable cWant;
 
-    constructor(address _cAsset, address _cBorrow) {
+    constructor(address _cAsset, address _cWant) {
         comptroller = Moontroller(address(CErc20(_cAsset).comptroller()));
         cAsset = CErc20(_cAsset);
-        cBorrow = CErc20(_cBorrow);
-    }
+        cWant = CErc20(_cWant);
 
-    function readyMarkets() internal {
+        // Note: Approvals & readying markets were going to be in seperate functions,
+        // but it wasn't possible to use with immutable variables before they were fully initialized.
+
+        // Approve cAsset for lending to and cWant for repaying to
+        EIP20Interface asset = EIP20Interface(cAsset.underlying());
+        EIP20Interface want = EIP20Interface(cWant.underlying());
+        asset.approve(address(cAsset), type(uint256).max);
+        want.approve(address(cWant), type(uint256).max);
+
+        // Enter Markets
         address[] memory market = new address[](1);
         market[0] = address(cAsset);
-        require(comptroller.enterMarkets(market)[0] == 0, "Surge: Compound Enter Market failed");
+        comptroller.enterMarkets(market);
     }
 
-    function claimRewards() internal {
+    function claimRewards() internal override{
         comptroller.claimReward(0, payable(address(this))); // MFAM/WELL
         comptroller.claimReward(1, payable(address(this))); // MOVR/GLMR
     }
@@ -30,48 +38,37 @@ contract MoonwellLender is IBaseLender {
     // To recieve MOVR/GLMR rewards
     receive() external payable {}
 
-    function lendBalance() internal returns (uint256) {
+    function lendBalance() internal override returns (uint256) {
         return cAsset.balanceOfUnderlying(address(this));
     }
 
-    function lend(uint256 amount) internal {
+    function lend(uint256 amount) internal override {
         cAsset.mint(amount);
     }
 
-    function borrowBalance() internal returns (uint256) {
-        cBorrow.borrowBalanceCurrent(address(this));
+    function borrowBalance() internal override returns (uint256) {
+        cWant.borrowBalanceCurrent(address(this));
     }
 
-    function borrow(uint256 amount) internal {
-        cBorrow.borrow(amount);
+    function borrow(uint256 amount) internal override{
+        cWant.borrow(amount);
     }
 
-    function repay(uint256 amount) internal {
-        cBorrow.repayBorrow(amount);
+    function repay(uint256 amount) internal override{
+        cWant.repayBorrow(amount);
     }
 
-    function withdraw(uint256 amount) internal {
+    function withdraw(uint256 amount) internal override{
         cAsset.redeemUnderlying(amount);
     }
 
     // Price of asset in USD, scaled to 18 decimals.
-    function price(address asset) internal view returns (uint256) {
-        comptroller.oracle().price(asset) * 1e12;
+    function price(address asset) internal view override returns (uint256) {
+        comptroller.oracle().price(CErc20(asset).symbol()) * 1e12;
     }
 
-    function approveLending() internal {
-        EIP20Interface asset = EIP20Interface(cAsset.underlying());
-        EIP20Interface borrow = EIP20Interface(cborrow.underlying());
-
-        // Approve cAsset for lending to
-        asset.approve(address(cAsset), type(uint256).max);
-
-        // Approve cBorrow for repaying to
-        borrow.approve(address(cBorrow), type(uint256).max);
-    }
-
-    function ltv() internal view returns (uint256) {
-        (, uint256 collateralFactorMantissa, ) = comptroller.markets(cAsset);
+    function ltv() internal view override returns (uint256) {
+        (, uint256 collateralFactorMantissa, ) = comptroller.markets(address(cAsset));
         return collateralFactorMantissa;
     }
 }

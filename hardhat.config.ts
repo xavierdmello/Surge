@@ -2,16 +2,15 @@ import { HardhatUserConfig } from "hardhat/config"
 import "@nomicfoundation/hardhat-toolbox"
 import "dotenv/config"
 import { getEnabledCategories } from "trace_events"
+import "hardhat-ignore-warnings"
 
 // Coinmarketcap API key (for gas reporter)
 const CMC_KEY = process.env.CMC_KEY!
-
 const PRIVATE_KEY = process.env.PRIVATE_KEY!
 const BOB = process.env.BOB!
 const ALICE = process.env.ALICE!
 const MOONRIVER_RPC = process.env.MOONRIVER_RPC!
 const MOONSCAN_KEY= process.env.MOONSCAN_KEY!
-const REAL_KEY=process.env.REAL_KEY!
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -32,7 +31,7 @@ const config: HardhatUserConfig = {
     moonbeam: { url: "https://rpc.api.moonbeam.network", accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 1284 },
     moonriver: {
       url: MOONRIVER_RPC,
-      accounts: [REAL_KEY, PRIVATE_KEY, BOB, ALICE],
+      accounts: [PRIVATE_KEY, BOB, ALICE],
       chainId: 1285,
     },
   },
@@ -49,7 +48,8 @@ const config: HardhatUserConfig = {
     apiKey: {
       moonriver: MOONSCAN_KEY
     }
-  }
+  },
+  warnings: 'off'
 }
 
 export default config

@@ -1,3 +1,4 @@
+//SPDX-license-identifier: MIT
 pragma solidity ^0.8.0;
 
 import {BaseVault} from "./BaseVault.sol";
@@ -6,16 +7,15 @@ import {ERC20} from "./tokens/ERC20.sol";
 
 /// @author Xavier D'Mello www.xavierdmello.com
 abstract contract BorrowOptimizer is BaseVault, IBaseLender {
+    // Token that is borrowed
+    ERC20 public immutable want;
     // ERC20 public immutable asset (Stored in BaseVault)
-    ERC20 public immutable borrow;
 
     // Percentage of LTV to borrow
     uint256 public safetyMargin = 80;
 
-    constructor(ERC20 _asset, ERC20 _borrow, string memory _name, string memory _symbol) BaseVault(_asset, _name, _symbol) {
-        borrow = _borrow;
-        approveLending();
-        readyMarkets();
+    constructor(ERC20 _asset, ERC20 _want, string memory _name, string memory _symbol) BaseVault(_asset, _name, _symbol) {
+        want = _want;
     }
 
     /**
@@ -23,14 +23,13 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
      * @notice borrowTargetMantissa = ltv * safetyMargin
      */
     function borrowTargetMantissa() public view returns (uint256) {
-        (, uint256 collateralFactorMantissa, ) = comptroller.markets(address(cAsset));
-        return (collateralFactorMantissa / 100) * safetyMargin;
+        return (ltv() / 100) * safetyMargin;
     }
 
     /**
      * The target amount of tokens to borrow safely.
      */
-    function borrowTarget() public view returns (uint256) {
+    function borrowTarget() public returns (uint256) {
         return (((lendBalance() * exchangeRate()) / 1e18) * borrowTargetMantissa()) / 1e18;
     }
 
@@ -38,7 +37,7 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
      * The target amount of collateral to supply safely.
      * Used internally to calculate withdrawls.
      */
-    function lendTarget() internal view returns (uint256) {
+    function lendTarget() internal returns (uint256) {
         return (((borrowBalance() * 1e18) / exchangeRate()) * 1e18) / borrowTargetMantissa();
     }
 
@@ -46,7 +45,7 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
      * The exchange rate asset:borrow, scaled to 18 decimals.
      */
     function exchangeRate() public view returns (uint256) {
-        return (price(asset) * 1e18) / price(borrow);
+        return (price(address(asset)) * 1e18) / price(address(want));
     }
 
     function rebalance() public {
@@ -58,7 +57,7 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
             uint256 borrowAmount = borrowTarget - borrowBalance;
             borrow(borrowAmount);
             afterBorrow(borrowAmount);
-        } else if (borrowTarget < borrowBalanceCurrent) {
+        } else if (borrowTarget < borrowBalance) {
             // Borrow less tokens
             uint256 repayAmount = borrowBalance - borrowTarget;
             beforeRepay(repayAmount);

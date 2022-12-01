@@ -1,6 +1,6 @@
 pragma solidity ^0.8.0;
 
-import {Comptroller} from "../compound/Comptroller.sol";
+import {Comptroller} from "../lenders/compound/Comptroller.sol";
 
 abstract contract Moontroller is Comptroller {
     /**
