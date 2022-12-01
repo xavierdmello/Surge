@@ -1,4 +1,4 @@
-// SPDX-license-identifier: MIT
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import {BaseVault} from "./BaseVault.sol";
@@ -65,7 +65,7 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
         }
     }
 
-    function afterDeposit(uint256 assets, uint256 shares) internal override {
+    function afterDeposit(uint256 assets, uint256 /*shares*/) internal override {
         lend(assets);
         rebalance();
     }

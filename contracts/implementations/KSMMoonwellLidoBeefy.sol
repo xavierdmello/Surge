@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {BorrowOptimizer} from "../BorrowOptimizer.sol";
 import {MoonwellLender} from "../lenders/MoonwellLender.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {CErc20} from "../lenders/compound/CErc20.sol";
+import {ICErc20} from "../interfaces/ICErc20.sol";
 import {WstKSM} from "./lido/wstKSM.sol";
 import {IUniswapV2Router02} from "../interfaces/IUniswapV2Router02.sol";
 import {ERC20} from "../tokens/ERC20.sol";
@@ -43,8 +43,8 @@ contract KSMMoonwellLidoBeefy is BorrowOptimizer, MoonwellLender, Ownable {
     address[] private compoundPath;
 
     constructor(
-        CErc20 _cAsset,
-        CErc20 _cWant,
+        ICErc20 _cAsset,
+        ICErc20 _cWant,
         WstKSM _stWant,
         address[] memory _rewardTokenPath,
         address[] memory _rewardEthPath,
@@ -89,6 +89,7 @@ contract KSMMoonwellLidoBeefy is BorrowOptimizer, MoonwellLender, Ownable {
 
     function setFee(uint8 newFee) public onlyOwner {
         require(newFee <= maxFee, "Surge: Fee cannot be set over maxFee");
+        fee = newFee;
     }
 
     function quickWithdraw(uint256 assets) public {
@@ -96,7 +97,7 @@ contract KSMMoonwellLidoBeefy is BorrowOptimizer, MoonwellLender, Ownable {
         withdraw(assets, msg.sender, msg.sender);
     }
 
-    function beforeWithdraw(uint256 assets, uint256 shares) internal override returns (uint256) {
+    function beforeWithdraw(uint256 assets, uint256 /*shares*/) internal override returns (uint256) {
         if (isQuickWithdraw[msg.sender] == true) {
             isQuickWithdraw[msg.sender] = false;
 

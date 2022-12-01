@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
 abstract contract IBaseLender {
     function claimRewards() internal virtual;
 
@@ -13,7 +15,7 @@ abstract contract IBaseLender {
     function repay(uint256 amount) internal virtual;
 
     function withdraw(uint256 amount) internal virtual;
-    
+
     // Percentage of collateral that can be borrowed against, scaled to 18 decimals.
     function ltv() internal view virtual returns (uint256);
 

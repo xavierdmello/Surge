@@ -3,6 +3,7 @@ import "@nomicfoundation/hardhat-toolbox"
 import "dotenv/config"
 import { getEnabledCategories } from "trace_events"
 import "hardhat-ignore-warnings"
+import "hardhat-interface-generator"
 
 // Coinmarketcap API key (for gas reporter)
 const CMC_KEY = process.env.CMC_KEY!
