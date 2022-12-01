@@ -30,7 +30,7 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
      * The target amount of tokens to borrow safely.
      */
     function borrowTarget() public returns (uint256) {
-        return (((lendBalance() * exchangeRate()) / 1e18) * borrowTargetMantissa()) / 1e18;
+        return (((lendBalance() * exchangeRate()) / 10 ** asset.decimals()) * borrowTargetMantissa()) / 1e18;
     }
 
     /**
@@ -38,14 +38,14 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
      * Used internally to calculate withdrawls.
      */
     function lendTarget() internal returns (uint256) {
-        return (((borrowBalance() * 1e18) / exchangeRate()) * 1e18) / borrowTargetMantissa();
+        return (((borrowBalance() * 10 ** asset.decimals()) / exchangeRate()) * 1e18) / borrowTargetMantissa();
     }
 
     /**
-     * The exchange rate asset:want, scaled to 18 decimals.
+     * The exchange rate asset:want
      */
     function exchangeRate() public view returns (uint256) {
-        return (price(address(asset)) * 1e18) / price(address(want));
+        return (price(address(asset)) * 10 ** want.decimals()) / price(address(want));
     }
 
     function rebalance() public {
@@ -58,6 +58,7 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
             borrow(borrowAmount);
             afterBorrow(borrowAmount);
         } else if (borrowTarget < borrowBalance) {
+
             // Borrow less tokens
             uint256 repayAmount = borrowBalance - borrowTarget;
             beforeRepay(repayAmount);

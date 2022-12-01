@@ -25,7 +25,7 @@ contract BorrowOptimizerTest is BorrowOptimizer, MoonwellLender, Ownable {
     }
 
     function beforeWithdraw(uint256 assets, uint256 /*shares*/) internal override returns (uint256) {
-        repay(borrowBalance());
+        repay((((assets * exchangeRate()) / 10 ** asset.decimals()) * borrowTargetMantissa()) / 1e18);
         withdraw(assets);
         return assets;
     }
@@ -38,14 +38,14 @@ contract BorrowOptimizerTest is BorrowOptimizer, MoonwellLender, Ownable {
      * The value, denominated in 'asset', of the tokens staked by this vault.
      */
     function stakedValueInAsset() public view returns (uint256) {
-        return (want.balanceOf(address(this)) * 1e18) / exchangeRate();
+        return (want.balanceOf(address(this)) * 10 ** asset.decimals()) / exchangeRate();
     }
 
     /**
      * The value, denominated in 'asset', of the borrows owed back to the lendee.
      */
     function debt() public returns (uint256) {
-        return (borrowBalance() * 1e18) / exchangeRate();
+        return (borrowBalance() * 10 ** asset.decimals()) / exchangeRate();
     }
 
     function beforeRepay(uint256 amount) internal override {}
