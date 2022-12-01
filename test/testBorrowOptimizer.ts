@@ -50,7 +50,7 @@ describe("Borrow Optimizer", function () {
 
   describe("Deposits", function () {
     it("Should receive deposits", async function () {
-      let { borrowOptimizer, owner, cAsset, asset , want} = await loadFixture(deployFixture)
+      let { borrowOptimizer, owner, cAsset, asset, want } = await loadFixture(deployFixture)
       await mintFiatTokenV2(owner, asset.address, owner.address, ethers.utils.parseUnits("10", 6))
       await borrowOptimizer.deposit(BigInt(1e6), owner.address)
       await borrowOptimizer.withdraw(999999, owner.address, owner.address)
@@ -60,9 +60,7 @@ describe("Borrow Optimizer", function () {
       const exchangeRate = await borrowOptimizer.exchangeRate()
       const lendBalance = await borrowOptimizer.callStatic.lendBalance()
       const borrowBalance = await borrowOptimizer.callStatic.borrowBalance()
-      const borrowBalanceInLend = borrowBalance.mul(ethers.utils.parseUnits("1", await asset.decimals())).div(exchangeRate) 
-      
-
+      const borrowBalanceInLend = borrowBalance.mul(ethers.utils.parseUnits("1", await asset.decimals())).div(exchangeRate)
 
       console.log(`Lend: ${lendBalance}`)
       console.log(`Borrow: ${borrowBalanceInLend}`)
@@ -72,8 +70,8 @@ describe("Borrow Optimizer", function () {
       console.log(`Borrow Balance: ${borrowBalance}`)
       console.log(await want.balanceOf(borrowOptimizer.address))
       console.log(`Exchange Rate: ${exchangeRate}`)
-      console.log(`Total Assets: ${await borrowOptimizer.callStatic.totalAssets()}` )
-      console.log(`Staked value in assset: ${await borrowOptimizer.stakedValueInAsset()}` )
+      console.log(`Total Assets: ${await borrowOptimizer.callStatic.totalAssets()}`)
+      console.log(`Staked value in assset: ${await borrowOptimizer.stakedValueInAsset()}`)
       // console.log(`Borrow Token Price: ${await borrowOptimizer.price(await asset.symbol())}`)
     })
   })
