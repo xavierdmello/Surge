@@ -5,9 +5,13 @@ import {ERC20} from "./tokens/ERC20.sol";
 import {SafeTransferLib} from "./utils/SafeTransferLib.sol";
 import {FixedPointMathLib} from "./utils/FixedPointMathLib.sol";
 
-/// @notice Non-standard ERC4626 with most 'view' functions modified to not be view (i.e state-modifying). This ensures compatibility with the Compound lending market.
-/// @notice Modified by Xavier DMello www.xavierdmello.com
-/// @author Solmate (https://github.com/transmissions11/solmate/blob/main/src/mixins/ERC4626.sol)
+/**
+ * @notice Non-standard ERC4626 with most 'view' functions modified to not be view (i.e state-modifying). This ensures compatibility with the Compound lending market.
+ * @notice withdraw() has been modified to account for the small amount of slippage due to withdrawing liquidity from LPs. This does not conform to ERC4626. 
+ * @notice There will be even more slippage if the user calls quickWithdraw(), which uses Liquid Staking LPs to instantly unbond tokens.
+ * @author Modified by Xavier DMello www.xavierdmello.com
+ * @author Solmate (https://github.com/transmissions11/solmate/blob/main/src/mixins/ERC4626.sol)
+ */
 abstract contract BaseVault is ERC20 {
     using SafeTransferLib for ERC20;
     using FixedPointMathLib for uint256;
@@ -107,13 +111,13 @@ abstract contract BaseVault is ERC20 {
         // Check for rounding error since we round down in previewRedeem.
         require((assets = previewRedeem(shares)) != 0, "ZERO_ASSETS");
 
-        beforeWithdraw(assets, shares);
+        uint256 actualReceived = beforeWithdraw(assets, shares);
 
         _burn(owner, shares);
 
-        emit Withdraw(msg.sender, receiver, owner, assets, shares);
+        emit Withdraw(msg.sender, receiver, owner, actualReceived, shares);
 
-        asset.safeTransfer(receiver, assets);
+        asset.safeTransfer(receiver, actualReceived);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -178,7 +182,7 @@ abstract contract BaseVault is ERC20 {
                           INTERNAL HOOKS LOGIC
     //////////////////////////////////////////////////////////////*/
 
-    function beforeWithdraw(uint256 assets, uint256 shares) internal virtual {}
+    function beforeWithdraw(uint256 assets, uint256 shares) internal virtual returns(uint256){}
 
     function afterDeposit(uint256 assets, uint256 shares) internal virtual {}
 }

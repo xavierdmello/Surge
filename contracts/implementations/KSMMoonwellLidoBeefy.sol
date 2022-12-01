@@ -57,22 +57,47 @@ contract KSMMoonwellLidoBeefy is BorrowOptimizer, MoonwellLender, Ownable {
         withdraw(assets, msg.sender, msg.sender);
     }
 
-    function beforeWithdraw(uint256 assets, uint256 shares) internal override {
+    function beforeWithdraw(uint256 assets, uint256 shares) internal override returns (uint256){
         if (isQuickWithdraw[msg.sender] == true) {
             isQuickWithdraw[msg.sender] = false;
 
-            // Share of staked tokens the user is withdrawing
-            uint256 swapAmount = (((assets * exchangeRate())/1e18)*stakedExchangeRate())/1e18; // TODO: fix, this doesn't work
-            // TODO: Sandwich attack protection
-            uint256 actualReceived = router.swapExactTokensForTokens(
-                swapAmount,
-                0,
-                stBorrowPath,
-                address(this),
-                block.timestamp
-            )[1];
+            uint256 lendTarget = lendTarget();
+            uint256 lendBalance = lendBalance();
 
+            // Amount of 'asset' that can be withdrawn safely *without* needing to repay debt.
+            // This is possible if the vault is unbalanced and overcollateralized over the safetyMargin.
+            uint256 nonSwapWithdraw= 0;
+            if (lendBalance > lendTarget) {
+                uint256 maxNonSwapWithdraw = lendBalance - lendTarget;
+                if (assets > maxNonSwapWithdraw) {
+                    nonSwapWithdraw = maxNonSwapWithdraw;
+                } else {
+                    nonSwapWithdraw = assets;
+                }
+            }
+            // nonSwapWithdraw cannot be larger than assets
+            uint256 leftoverAssets = assets - nonSwapWithdraw;
 
+            if( leftoverAssets > 0 ){
+                // How much wstKSM that needs to be swapped to KSM and repaid to the lending protocol to unlock assets to withdraw.
+                uint256 swapAmount = (((leftoverAssets * exchangeRate())/1e18)*stakedExchangeRate())/1e18;
+                // TODO: Sandwich attack protection
+                uint256 actualReceived = router.swapExactTokensForTokens(
+                    swapAmount,
+                    0,
+                    stBorrowPath,
+                    address(this),
+                    block.timestamp
+                )[1];
+                repay(actualReceived);
+
+                uint256 actualWithdraw = (actualReceived* 1e18)/exchangeRate() + nonSwapWithdraw;
+                withdraw(actualWithdraw);
+                return actualWithdraw;
+            } else {
+                withdraw(assets);
+                return assets;
+            }
         } else {
             // for now
             // TODO: change

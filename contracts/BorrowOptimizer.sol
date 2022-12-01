@@ -28,16 +28,24 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
     }
 
     /**
-     * The target amount of tokens to borrow safely
+     * The target amount of tokens to borrow safely.
      */
     function borrowTarget() public view returns (uint256) {
-        return = (((lendBalance() * exchangeRate()) / 1e18) * borrowTargetMantissa()) / 1e18;
+        return (((lendBalance() * exchangeRate()) / 1e18) * borrowTargetMantissa()) / 1e18;
+    }
+
+    /**
+     * The target amount of collateral to supply safely.
+     * Used internally to calculate withdrawls.
+     */
+    function lendTarget() internal view returns (uint256) {
+        return (((borrowBalance() * 1e18) / exchangeRate()) * 1e18) / borrowTargetMantissa();
     }
 
     /**
      * The exchange rate asset:borrow, scaled to 18 decimals.
      */
-    function exchangeRate() public view returns(uint256) {
+    function exchangeRate() public view returns (uint256) {
         return (price(asset) * 1e18) / price(borrow);
     }
 
@@ -72,7 +80,7 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
 
     /**
      * @notice totalAssets() must be implemented in the vault implementation contract.
-     * This is because assets are staked and potentially even LP'd, which affects the total value of assets. 
+     * This is because assets are staked and potentially even LP'd, which affects the total value of assets.
      */
     // function totalAssets public override returns (uint256) {}
 
