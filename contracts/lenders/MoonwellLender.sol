@@ -40,7 +40,7 @@ contract MoonwellLender is IBaseLender {
     // To recieve MOVR/GLMR rewards
     receive() external payable {}
 
-    function lendBalance() internal override returns (uint256) {
+    function lendBalance() public override returns (uint256) {
         return cAsset.balanceOfUnderlying(address(this));
     }
 
@@ -48,7 +48,7 @@ contract MoonwellLender is IBaseLender {
         cAsset.mint(amount);
     }
 
-    function borrowBalance() internal override returns (uint256) {
+    function borrowBalance() public override returns (uint256) {
         return cWant.borrowBalanceCurrent(address(this));
     }
 
@@ -65,11 +65,11 @@ contract MoonwellLender is IBaseLender {
     }
 
     // Price of asset in USD, scaled to 18 decimals.
-    function price(address asset) internal view override returns (uint256 price) {
+    function price(address asset) public view override returns (uint256 price) {
         return IPriceOracle(comptroller.oracle()).price(ICErc20(asset).symbol()) * 1e12;
     }
 
-    function ltv() internal view override returns (uint256) {
+    function ltv() public view override returns (uint256) {
         (, uint256 collateralFactorMantissa, ) = comptroller.markets(address(cAsset));
         return collateralFactorMantissa;
     }

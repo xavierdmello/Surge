@@ -24,7 +24,11 @@ contract BorrowOptimizerTest is BorrowOptimizer, MoonwellLender, Ownable {
         safetyMargin = newMargin;
     }
 
-    function beforeWithdraw(uint256 assets, uint256 /*shares*/) internal override returns (uint256) {}
+    function beforeWithdraw(uint256 assets, uint256 /*shares*/) internal override returns (uint256) {
+        repay(borrowBalance());
+        withdraw(assets);
+        return assets;
+    }
 
     function totalAssets() public override returns (uint256) {
         return lendBalance() - debt() + stakedValueInAsset();

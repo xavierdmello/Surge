@@ -88,13 +88,13 @@ abstract contract BaseVault is ERC20 {
             if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - shares;
         }
 
-        beforeWithdraw(assets, shares);
+        uint256 actualReceived = beforeWithdraw(assets, shares);
 
         _burn(owner, shares);
 
-        emit Withdraw(msg.sender, receiver, owner, assets, shares);
+        emit Withdraw(msg.sender, receiver, owner, actualReceived, shares);
 
-        asset.safeTransfer(receiver, assets);
+        asset.safeTransfer(receiver, actualReceived);
     }
 
     function redeem(

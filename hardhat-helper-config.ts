@@ -17,7 +17,7 @@ export const config: HelperConfig = {
   hardhat: {
     // Moonriver
     cAsset: "0x39AA39c021dfbaE8faC545936693aC917d5E7563", // cUSDC
-    cWant: "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4", // cWBTC
+    cWant: "0xFAce851a4921ce59e912d19329929CE6da6EB0c7", // cLINK
     stWant: "0x3bfd113ad0329a7994a681236323fb16E16790e3", // wstKSM
     rewardTokenPath: [
       "0xBb8d88bcD9749636BC4D2bE22aaC4Bb3B01A58F1",
@@ -33,7 +33,7 @@ export const config: HelperConfig = {
       "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
     ], // wstKSM -> xcKSM -> WMOVR -> USDC
     router: "0xAA30eF758139ae4a7f798112902Bf6d65612045f",
-    mintAccount: "0x10c6b61DbF44a083Aec3780aCF769C77BE747E23",
+    mintAccount: "0xFcb19e6a322b27c06842A71e8c725399f049AE3a",
   },
   moonriver: {
     cAsset: "0xd0670AEe3698F66e2D4dAf071EB9c690d978BFA8", // mUSDC

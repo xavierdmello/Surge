@@ -42,7 +42,7 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
     }
 
     /**
-     * The exchange rate asset:borrow, scaled to 18 decimals.
+     * The exchange rate asset:want, scaled to 18 decimals.
      */
     function exchangeRate() public view returns (uint256) {
         return (price(address(asset)) * 1e18) / price(address(want));
