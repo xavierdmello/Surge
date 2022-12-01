@@ -15,7 +15,7 @@ Based off of the [Autolido](https://docs.google.com/document/d/1wQ-vzP7TlSUF-Pgj
 ## Misc
 #### personal, incomplete TODO:
 - sandwich attack protection
-- gelato integration
+- gelato integration (WIP)
 - unbond withdrawls
 - pausing
 - access protection on rebalance() so people don't spam it and incure bad debt
