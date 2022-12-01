@@ -12,6 +12,7 @@ const BOB = process.env.BOB!
 const ALICE = process.env.ALICE!
 const MOONRIVER_RPC = process.env.MOONRIVER_RPC!
 const MOONSCAN_KEY= process.env.MOONSCAN_KEY!
+const ETHEREUM_RPC = process.env.ETHEREUM_RPC!
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -27,7 +28,7 @@ const config: HardhatUserConfig = {
   networks: {
     moonbase: { url: "https://rpc.api.moonbase.moonbeam.network", accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 1287 },
     hardhat: {
-      forking: { url: MOONRIVER_RPC, blockNumber: 2623000 },
+      forking: { url: ETHEREUM_RPC, blockNumber: 16000000 },
     },
     moonbeam: { url: "https://rpc.api.moonbeam.network", accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 1284 },
     moonriver: {
@@ -35,22 +36,22 @@ const config: HardhatUserConfig = {
       accounts: [PRIVATE_KEY, BOB, ALICE],
       chainId: 1285,
     },
+    ethereum: { url: ETHEREUM_RPC, accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 1 },
   },
   gasReporter: {
-    enabled: false,
+    enabled: true,
     noColors: true,
     outputFile: "gas-report.txt",
     currency: "USD",
-    gasPriceApi: "https://api-moonriver.moonscan.io/api?module=proxy&action=eth_gasPrice",
+    // gasPriceApi: "https://api-moonriver.moonscan.io/api?module=proxy&action=eth_gasPrice",
     coinmarketcap: CMC_KEY,
-    token: "MOVR",
+    token: "ETH",
   },
-  etherscan:{
+  etherscan: {
     apiKey: {
-      moonriver: MOONSCAN_KEY
-    }
+      moonriver: MOONSCAN_KEY,
+    },
   },
-  warnings: 'off'
 }
 
 export default config

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+/// @author Xavier DMello www.xavierdmello.com
 abstract contract IBaseLender {
     function claimRewards() internal virtual;
 

@@ -1,8 +1,8 @@
 interface HelperConfig {
   [network: string]: {
     cAsset: string
-    cBorrow: string
-    stBorrow: string
+    cWant: string
+    stWant: string
     rewardTokenPath: string[]
     rewardEthPath: string[]
     stBorrowPath: string[]
@@ -12,15 +12,13 @@ interface HelperConfig {
   }
 }
 
-export const devChains = new Set<string>(["moonbase", "moonriver", "hardhat", "moonbeam"])
-
 // Addresses for important contracts on each network
 export const config: HelperConfig = {
   hardhat: {
     // Moonriver
-    cAsset: "0xd0670AEe3698F66e2D4dAf071EB9c690d978BFA8", // mUSDC
-    cBorrow: "0x6503D905338e2ebB550c9eC39Ced525b612E77aE", // mETH (for the testing purposes)
-    stBorrow: "0x3bfd113ad0329a7994a681236323fb16E16790e3", // wstKSM
+    cAsset: "0x39AA39c021dfbaE8faC545936693aC917d5E7563", // cUSDC
+    cWant: "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4", // cWBTC
+    stWant: "0x3bfd113ad0329a7994a681236323fb16E16790e3", // wstKSM
     rewardTokenPath: [
       "0xBb8d88bcD9749636BC4D2bE22aaC4Bb3B01A58F1",
       "0x98878B06940aE243284CA214f92Bb71a2b032B8A",
@@ -39,8 +37,8 @@ export const config: HelperConfig = {
   },
   moonriver: {
     cAsset: "0xd0670AEe3698F66e2D4dAf071EB9c690d978BFA8", // mUSDC
-    cBorrow: "0xa0D116513Bd0B8f3F14e6Ea41556c6Ec34688e0f", // mxcKSM
-    stBorrow: "0x3bfd113ad0329a7994a681236323fb16E16790e3", // wstKSM
+    cWant: "0xa0D116513Bd0B8f3F14e6Ea41556c6Ec34688e0f", // mxcKSM
+    stWant: "0x3bfd113ad0329a7994a681236323fb16E16790e3", // wstKSM
     rewardTokenPath: [
       "0xBb8d88bcD9749636BC4D2bE22aaC4Bb3B01A58F1",
       "0x98878B06940aE243284CA214f92Bb71a2b032B8A",
@@ -56,5 +54,20 @@ export const config: HelperConfig = {
     ], // wstKSM -> xcKSM -> WMOVR -> USDC
     router: "0xAA30eF758139ae4a7f798112902Bf6d65612045f",
     mintAccount: "0x10c6b61DbF44a083Aec3780aCF769C77BE747E23",
+  },
+  ethereum: {
+    cAsset: "0x39AA39c021dfbaE8faC545936693aC917d5E7563", // cUSDC
+    cWant: "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4", // cWBTC
+    stWant: "0x3bfd113ad0329a7994a681236323fb16E16790e3", // wstKSM
+    rewardTokenPath: [
+      "0xBb8d88bcD9749636BC4D2bE22aaC4Bb3B01A58F1",
+      "0x98878B06940aE243284CA214f92Bb71a2b032B8A",
+      "0xE3F5a90F9cb311505cd691a46596599aA1A0AD7D",
+    ], // MFAM -> WMOVR -> USDC
+    rewardEthPath: ["", ""], // WMOVR -> USDC
+    stBorrowPath: ["", ""], // wstKSM -> xcKSM
+    compoundPath: ["", "", "", ""],
+    router: "",
+    mintAccount: "",
   },
 }

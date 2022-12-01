@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {BaseVault} from "./BaseVault.sol";
-import {IBaseLender} from "./lenders/IBaseLender.sol";
+import {IBaseLender} from "./interfaces/IBaseLender.sol";
 import {ERC20} from "./tokens/ERC20.sol";
 
 /// @author Xavier D'Mello www.xavierdmello.com

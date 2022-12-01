@@ -11,7 +11,7 @@ incomplete TODO:
 - pausing
 - access protection on rebalance() so people don't spam it and incure bad debt
 - batch withdrawls so vaults don't get limited by the 20 unbond requests at a time limit on Lido
-- create interfaces and remove redundant files
+- create interfaces and remove redundant files for lido
 - figure out how to deal with bad debt
 - make sure people can withdraw even with an oracle error
 - compound lending market rewards

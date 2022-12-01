@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IBaseLender} from "./IBaseLender.sol";
+import {IBaseLender} from "../interfaces/IBaseLender.sol";
 import {ICErc20} from "../interfaces/ICErc20.sol";
 import {ERC20} from "../tokens/ERC20.sol";
 import {IMoontroller} from "../interfaces/IMoontroller.sol";
