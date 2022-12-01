@@ -1,5 +1,5 @@
 import { assert, expect } from "chai"
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers"
+import { loadFixture, mine } from "@nomicfoundation/hardhat-network-helpers"
 import { ethers, network } from "hardhat"
 import { config } from "../hardhat-helper-config"
 import { mintFiatTokenV2 } from "../scripts/mint"
@@ -53,14 +53,13 @@ describe("Borrow Optimizer", function () {
       let { borrowOptimizer, owner, cAsset, asset, want } = await loadFixture(deployFixture)
       await mintFiatTokenV2(owner, asset.address, owner.address, ethers.utils.parseUnits("10", 6))
       await borrowOptimizer.deposit(BigInt(1e6), owner.address)
-      await borrowOptimizer.withdraw(999999, owner.address, owner.address)
-      await borrowOptimizer.rebalance()
+
       console.log(`Vault Shares: ${await borrowOptimizer.balanceOf(owner.address)}`)
 
-      const exchangeRate = await borrowOptimizer.exchangeRate()
-      const lendBalance = await borrowOptimizer.callStatic.lendBalance()
-      const borrowBalance = await borrowOptimizer.callStatic.borrowBalance()
-      const borrowBalanceInLend = borrowBalance.mul(ethers.utils.parseUnits("1", await asset.decimals())).div(exchangeRate)
+      let exchangeRate = await borrowOptimizer.exchangeRate()
+      let lendBalance = await borrowOptimizer.callStatic.lendBalance()
+      let borrowBalance = await borrowOptimizer.callStatic.borrowBalance()
+      let borrowBalanceInLend = borrowBalance.mul(ethers.utils.parseUnits("1", await asset.decimals())).div(exchangeRate)
 
       console.log(`Lend: ${lendBalance}`)
       console.log(`Borrow: ${borrowBalanceInLend}`)
@@ -71,8 +70,13 @@ describe("Borrow Optimizer", function () {
       console.log(await want.balanceOf(borrowOptimizer.address))
       console.log(`Exchange Rate: ${exchangeRate}`)
       console.log(`Total Assets: ${await borrowOptimizer.callStatic.totalAssets()}`)
-      console.log(`Staked value in assset: ${await borrowOptimizer.stakedValueInAsset()}`)
-      // console.log(`Borrow Token Price: ${await borrowOptimizer.price(await asset.symbol())}`)
+
+      let debt = await borrowOptimizer.callStatic.debt()
+      let sv = await borrowOptimizer.stakedValueInAsset()
+
+      console.log(`Staked value in assset: ${sv}`)
+      console.log(`Debt: ${debt}`)
+      console.log(`Decficit: ${debt.sub(sv)}`)
     })
   })
 })

@@ -58,7 +58,6 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
             borrow(borrowAmount);
             afterBorrow(borrowAmount);
         } else if (borrowTarget < borrowBalance) {
-
             // Borrow less tokens
             uint256 repayAmount = borrowBalance - borrowTarget;
             beforeRepay(repayAmount);
