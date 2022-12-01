@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 abstract contract IBaseLender {
     function claimRewards() internal virtual;
 

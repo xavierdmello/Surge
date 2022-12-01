@@ -13,4 +13,5 @@ incomplete TODO:
 - batch withdrawls so vaults don't get limited by the 20 unbond requests at a time limit on Lido
 - create interfaces and remove redundant files
 - figure out how to deal with bad debt
-- make sure people can withdrawl even with an oracle error
+- make sure people can withdraw even with an oracle error
+- compound lending market rewards
