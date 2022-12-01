@@ -27,5 +27,5 @@ Based off of the [Autolido](https://docs.google.com/document/d/1wQ-vzP7TlSUF-Pgj
 
 
 -- urgent:
-- fix borrowTarget() not including interest on the borrow
+- fix borrowTarget() not including interest on the borrow, but make sure to take into account bad debt
 - check rounding math, look into rounding down
