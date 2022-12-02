@@ -4,17 +4,17 @@ pragma solidity ^0.8.0;
 import {IBaseLender} from "../interfaces/IBaseLender.sol";
 import {ICErc20} from "../interfaces/ICErc20.sol";
 import {ERC20} from "../tokens/ERC20.sol";
-import {IMoontroller} from "../interfaces/IMoontroller.sol";
 import {IPriceOracle} from "../interfaces/IPriceOracle.sol";
+import {IComptroller} from "../interfaces/IComptroller.sol";
 
 contract MoonwellLender is IBaseLender {
-    IMoontroller public immutable comptroller;
+    IComptroller public immutable comptroller;
     ICErc20 public immutable cAsset;
     ICErc20 public immutable cWant;
     mapping(address => address) private cToken;
 
     constructor(address _cAsset, address _cWant) {
-        comptroller = IMoontroller(address(ICErc20(_cAsset).comptroller()));
+        comptroller = IComptroller(address(ICErc20(_cAsset).comptroller()));
         cAsset = ICErc20(_cAsset);
         cWant = ICErc20(_cWant);
 
@@ -37,12 +37,8 @@ contract MoonwellLender is IBaseLender {
     }
 
     function claimRewards() internal override {
-        comptroller.claimReward(0, payable(address(this))); // MFAM/WELL
-        comptroller.claimReward(1, payable(address(this))); // MOVR/GLMR
+        comptroller.claimComp(address(this));
     }
-
-    // To recieve MOVR/GLMR rewards
-    receive() external payable {}
 
     function lendBalance() public override returns (uint256) {
         return cAsset.balanceOfUnderlying(address(this));

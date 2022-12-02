@@ -1,9 +1,10 @@
 import { assert, expect } from "chai"
-import { loadFixture, mine } from "@nomicfoundation/hardhat-network-helpers"
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers"
 import { ethers, network } from "hardhat"
 import { config } from "../hardhat-helper-config"
 import { mintFiatTokenV2 } from "../scripts/mint"
 import { CompoundLens__factory } from "../typechain-types/factories/contracts/lenders/compound/Lens/CompoundLens.sol"
+import { verify } from "../scripts/verify"
 
 describe("Borrow Optimizer", function () {
   async function deployFixture() {
@@ -15,9 +16,10 @@ describe("Borrow Optimizer", function () {
     const asset = await ethers.getContractAt("contracts/tokens/ERC20.sol:ERC20", await cAsset.underlying())
     const cWant = await ethers.getContractAt("ICErc20", cfg.cWant)
     const want = await ethers.getContractAt("contracts/tokens/ERC20.sol:ERC20", await cWant.underlying())
-
+    const args = [cfg.cAsset, cfg.cWant, "Borrow Optimizer Test", "BOT"]
     const borrowOptimizer = await BorrowOptimizer.deploy(cfg.cAsset, cfg.cWant, "Borrow Optimizer Test", "BOT")
-    await borrowOptimizer.deployed()
+    await borrowOptimizer.deployTransaction.wait(10)
+    verify(borrowOptimizer.address, args)
 
     await asset.approve(borrowOptimizer.address, ethers.constants.MaxUint256)
     return { BorrowOptimizer, borrowOptimizer, owner, bob, alice, cfg, cAsset, asset, want, cWant }
@@ -25,19 +27,33 @@ describe("Borrow Optimizer", function () {
 
   describe("Deployment", function () {
     it("Should deploy", async function () {
-      const { borrowOptimizer, cfg } = await loadFixture(deployFixture)
+      const BorrowOptimizer = await ethers.getContractFactory("BorrowOptimizerTest")
+      const [owner, bob, alice] = await ethers.getSigners()
+      const cfg = config[network.name]
 
-      // Check immutable variables that should return if everything deployed correctly
-      assert.equal(await borrowOptimizer.cAsset(), cfg.cAsset)
-      assert.equal(await borrowOptimizer.cWant(), cfg.cWant)
-    })
+      const cAsset = await ethers.getContractAt("ICErc20", cfg.cAsset)
+      const asset = await ethers.getContractAt("contracts/tokens/ERC20.sol:ERC20", await cAsset.underlying())
+      const cWant = await ethers.getContractAt("ICErc20", cfg.cWant)
+      const want = await ethers.getContractAt("contracts/tokens/ERC20.sol:ERC20", await cWant.underlying())
+      const args = [cfg.cAsset, cfg.cWant, "Borrow Optimizer Test", "BOT"]
+      const borrowOptimizer = await BorrowOptimizer.deploy(cfg.cAsset, cfg.cWant, "Borrow Optimizer Test", "BOT")
+      await borrowOptimizer.deployTransaction.wait(5)
+      await verify(borrowOptimizer.address, args)
+
+      await asset.approve(borrowOptimizer.address, ethers.constants.MaxUint256)
+
+      const BorrowOptimizerResolver = await ethers.getContractFactory("BorrowOptimizerResolver")
+      const borrowOptimizerResolver = await BorrowOptimizerResolver.deploy(borrowOptimizer.address, 1)
+      await borrowOptimizerResolver.deployTransaction.wait(5)
+      await verify(borrowOptimizerResolver.address, [borrowOptimizer.address, 1])
+    }).timeout(800000)
 
     it("Should have the right owner", async function () {
       const { borrowOptimizer, owner } = await loadFixture(deployFixture)
 
       assert.equal(await borrowOptimizer.owner(), owner.address)
     })
-  })
+  }).timeout(800000)
 
   describe("Security", function () {
     it("Should not let non-owners call onlyOwner functions", async function () {

@@ -14,10 +14,11 @@ const MOONRIVER_RPC = process.env.MOONRIVER_RPC!
 const MOONSCAN_KEY= process.env.MOONSCAN_KEY!
 const ETHEREUM_RPC = process.env.ETHEREUM_RPC!
 const GOERLI_RPC = process.env.GOERLI_RPC!
+const ETHERSCAN_KEY = process.env.ETHERSCAN_KEY!
 
 const config: HardhatUserConfig = {
   solidity: {
-    compilers: [{ version: "0.6.12" }, { version: "0.8.10" }],
+  version: "0.8.17",
     settings: {
       optimizer: {
         enabled: true,
@@ -38,7 +39,7 @@ const config: HardhatUserConfig = {
       chainId: 1285,
     },
     ethereum: { url: ETHEREUM_RPC, accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 1 },
-    goerli: { url: GOERLI_RPC, accounts: [PRIVATE_KEY, BOB, ALICE], chainId:5},
+    goerli: { url: GOERLI_RPC, accounts: [PRIVATE_KEY, BOB, ALICE], chainId: 5 },
   },
   gasReporter: {
     enabled: true,
@@ -52,6 +53,7 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       moonriver: MOONSCAN_KEY,
+      goerli: ETHERSCAN_KEY,
     },
   },
 }

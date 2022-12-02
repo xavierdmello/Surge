@@ -70,4 +70,19 @@ export const config: HelperConfig = {
     router: "",
     mintAccount: "",
   },
+  goerli: {
+    cAsset: "0x73506770799Eb04befb5AaE4734e58C2C624F493", // cUSDC
+    cWant: "0x0fF50a12759b081Bb657ADaCf712C52bb015F1Cd", // cCOMP
+    stWant: "0x3bfd113ad0329a7994a681236323fb16E16790e3", // wstKSM
+    rewardTokenPath: [
+      "0xBb8d88bcD9749636BC4D2bE22aaC4Bb3B01A58F1",
+      "0x98878B06940aE243284CA214f92Bb71a2b032B8A",
+      "0xE3F5a90F9cb311505cd691a46596599aA1A0AD7D",
+    ], // MFAM -> WMOVR -> USDC
+    rewardEthPath: ["", ""], // WMOVR -> USDC
+    stBorrowPath: ["", ""], // wstKSM -> xcKSM
+    compoundPath: ["", "", "", ""],
+    router: "",
+    mintAccount: "",
+  },
 }
