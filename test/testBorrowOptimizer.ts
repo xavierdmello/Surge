@@ -37,14 +37,14 @@ describe("Borrow Optimizer", function () {
       const want = await ethers.getContractAt("contracts/tokens/ERC20.sol:ERC20", await cWant.underlying())
       const args = [cfg.cAsset, cfg.cWant, "Borrow Optimizer Test", "BOT"]
       const borrowOptimizer = await BorrowOptimizer.deploy(cfg.cAsset, cfg.cWant, "Borrow Optimizer Test", "BOT")
-      await borrowOptimizer.deployTransaction.wait(5)
+      await borrowOptimizer.deployTransaction.wait(3)
       await verify(borrowOptimizer.address, args)
 
       await asset.approve(borrowOptimizer.address, ethers.constants.MaxUint256)
 
       const BorrowOptimizerResolver = await ethers.getContractFactory("BorrowOptimizerResolver")
       const borrowOptimizerResolver = await BorrowOptimizerResolver.deploy(borrowOptimizer.address, 1)
-      await borrowOptimizerResolver.deployTransaction.wait(5)
+      await borrowOptimizerResolver.deployTransaction.wait(3)
       await verify(borrowOptimizerResolver.address, [borrowOptimizer.address, 1])
     }).timeout(800000)
 
