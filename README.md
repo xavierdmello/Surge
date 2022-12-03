@@ -16,6 +16,9 @@ Based off of the [Autolido](https://docs.google.com/document/d/1wQ-vzP7TlSUF-Pgj
 #### personal, incomplete TODO:
 - sandwich attack protection
 - gelato integration (WIP)
+    - rebalancing
+    - compounding 
+    - pausing
 - unbond withdrawls
 - pausing
 - access protection on rebalance() so people don't spam it and incure bad debt
@@ -28,6 +31,7 @@ Based off of the [Autolido](https://docs.google.com/document/d/1wQ-vzP7TlSUF-Pgj
 
 -- urgent:
 - check rounding math, look into rounding down
+- fix gelato rebalancing threshold error (only triggers at 12.5% when set to 10%)
 
 #### Notes:
 - bad debt is caused when debt > stakedValueInAsset (i.e cost to borrow > staking rewards for too long)

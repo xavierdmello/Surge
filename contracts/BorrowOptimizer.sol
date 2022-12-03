@@ -22,18 +22,24 @@ abstract contract BorrowOptimizer is BaseVault, IBaseLender {
      * The target percentage of the vault to borrow against, scaled to 18 decimals.
      * @notice borrowTargetMantissa = ltv * safetyMargin
      */
+    function previewBorrowTargetMantissa(uint256 _safetyMargin) public view returns (uint256) {
+        return (ltv() / 100) * _safetyMargin;
+    }
+
     function borrowTargetMantissa() public view returns (uint256) {
-        return (ltv() / 100) * safetyMargin;
+        return previewBorrowTargetMantissa(safetyMargin);
     }
 
     /**
      * The target amount of tokens to borrow safely.
      */
-    function borrowTarget() public returns (uint256) {
-        return (((lendBalance() * exchangeRate()) / 10 ** asset.decimals()) * borrowTargetMantissa()) / 1e18;
+    function previewBorrowTarget(uint256 _safetyMargin) public returns (uint256) {
+        return (((lendBalance() * exchangeRate()) / 10 ** asset.decimals()) * previewBorrowTargetMantissa(_safetyMargin)) / 1e18;
     }
 
-
+    function borrowTarget() public returns (uint256) {
+        return previewBorrowTarget(safetyMargin);
+    }
 
     /**
      * The target amount of collateral to supply safely.

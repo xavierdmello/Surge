@@ -7,41 +7,61 @@ import {LibString} from "../utils/LibString.sol";
 
 contract BorrowOptimizerResolver is Ownable {
     BorrowOptimizer public immutable bo;
-    uint256 public missThreshold;
+    uint256 public threshold;
     using LibString for uint256;
 
-    /// @notice missThreshold is scaled to 1 decimal, so entering a _missThreshold of 1 will set the threshold to 0.1%
-    constructor(BorrowOptimizer _borrowOptimizer, uint256 _missThreshold) Ownable() {
+    constructor(BorrowOptimizer _borrowOptimizer, uint256 _threshold) Ownable() {
         bo = _borrowOptimizer;
-        missThreshold = _missThreshold;
+        threshold = _threshold;
     }
-
+    
     function shouldRebalance() external returns (bool canExec, bytes memory execPayload) {
-        if (bo.totalAssets() == 0) return (false, "No assets in vault.");
-
-        uint256 miss = borrowTargetMiss();
-
-        if (miss < missThreshold) return (false, abi.encodePacked("Miss threshold not met. Current miss: ", miss.toString()));
-
-        execPayload = abi.encodeCall(BorrowOptimizer.rebalance, ());
-        return (true, execPayload);
-    }
-
-    function borrowTargetMiss() public returns (uint256 missFactor) {
-        // 1000 = 1 = 100%
-        // 0100 = 0.1 = 10%
-        // 0010 = 0.01 = 1%
-        // 0001 = 0.001 = 0.1%
-        missFactor = (bo.borrowBalance() * 1000) / bo.borrowTarget();
-        if (missFactor < 1000) {
-            return 1000 - missFactor;
+        uint256 borrowBalance = bo.borrowBalance();
+        uint256 max = bo.previewBorrowTarget(bo.safetyMargin() + threshold);
+        uint256 min = bo.previewBorrowTarget(bo.safetyMargin() - threshold);
+        if (borrowBalance > max || borrowBalance < min) {
+            return (true, abi.encodeCall(BorrowOptimizer.rebalance, ()));
         } else {
-            return missFactor - 1000;
+            return (
+                false,
+                abi.encodePacked(
+                    "Current LTV: ",
+                    currentLtv().toString(),
+                    " Target: ",
+                    bo.borrowTargetMantissa().toString(),
+                    " Threshold: ",
+                    threshold.toString(),
+                    " Borrow Balance: ",
+                    borrowBalance.toString(),
+                    " Max: ",
+                    max.toString(),
+                    " Min: ",
+                    min.toString()
+                )
+            );
         }
     }
 
-    /// @notice missThreshold is scaled to 1 decimal, so entering a _missThreshold of 1 will set the threshold to 0.1%
-    function setMissThreshold(uint256 _missThreshold) public onlyOwner {
-        missThreshold = _missThreshold;
+    /// @dev Not percise! Should only be used for display purposes.
+    function currentLtv() public returns (uint256) {
+        uint256 assetDecimals = bo.asset().decimals();
+        uint256 lendBalance = bo.lendBalance();
+        if (lendBalance == 0) {
+            return 0;
+        } else {
+            if (assetDecimals > 18) {
+                return
+                    ((((bo.borrowBalance() * 10 ** bo.asset().decimals()) / bo.exchangeRate()) * 10 ** bo.asset().decimals()) /
+                        lendBalance) / 10 ** (assetDecimals - 18);
+            } else {
+                return
+                    ((((bo.borrowBalance() * 10 ** bo.asset().decimals()) / bo.exchangeRate()) * 10 ** bo.asset().decimals()) /
+                        lendBalance) * 10 ** (18 - assetDecimals);
+            }
+        }
+    }
+
+    function setThreshold(uint256 _threshold) public onlyOwner {
+        threshold = _threshold;
     }
 }
