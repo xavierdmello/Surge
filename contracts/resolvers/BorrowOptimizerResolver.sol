@@ -34,7 +34,7 @@ contract BorrowOptimizerResolver is Ownable {
                     " Min: ",
                     min.toString(),
                     " Liquidation: ",
-                    bo.previewBorrowTarget(bo.safetyMargin() - threshold).toString()
+                    bo.previewBorrowTarget(100).toString()
                 )
             );
         }
