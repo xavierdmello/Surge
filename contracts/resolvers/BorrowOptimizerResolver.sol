@@ -25,39 +25,18 @@ contract BorrowOptimizerResolver is Ownable {
             return (
                 false,
                 abi.encodePacked(
-                    "Current LTV: ",
-                    currentLtv().toString(),
-                    " Target: ",
-                    bo.borrowTargetMantissa().toString(),
                     " Threshold: ",
                     threshold.toString(),
-                    " Borrow Balance: ",
+                    " Current: ",
                     borrowBalance.toString(),
                     " Max: ",
                     max.toString(),
                     " Min: ",
-                    min.toString()
+                    min.toString(),
+                    " Liquidation: ",
+                    bo.previewBorrowTarget(bo.safetyMargin() - threshold).toString()
                 )
             );
-        }
-    }
-
-    /// @dev Not percise! Should only be used for display purposes.
-    function currentLtv() public returns (uint256) {
-        uint256 assetDecimals = bo.asset().decimals();
-        uint256 lendBalance = bo.lendBalance();
-        if (lendBalance == 0) {
-            return 0;
-        } else {
-            if (assetDecimals > 18) {
-                return
-                    ((((bo.borrowBalance() * 10 ** bo.asset().decimals()) / bo.exchangeRate()) * 10 ** bo.asset().decimals()) /
-                        lendBalance) / 10 ** (assetDecimals - 18);
-            } else {
-                return
-                    ((((bo.borrowBalance() * 10 ** bo.asset().decimals()) / bo.exchangeRate()) * 10 ** bo.asset().decimals()) /
-                        lendBalance) * 10 ** (18 - assetDecimals);
-            }
         }
     }
 
