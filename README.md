@@ -31,6 +31,7 @@ Based off of the [Autolido](https://docs.google.com/document/d/1wQ-vzP7TlSUF-Pgj
 
 -- urgent:
 - check rounding math, look into rounding down
+- fix bug in withdraw
 
 #### Notes:
 - bad debt is caused when debt > stakedValueInAsset (i.e cost to borrow > staking rewards for too long)
